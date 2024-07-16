@@ -16,6 +16,7 @@ class ResponseHandler<T> {
 
 enum ResponseMessage {
   userAdded,
+  userLogin,
   userDeleted,
   userUpdated,
   userNotFound,
@@ -173,6 +174,8 @@ extension ResponseMessageExtension on ResponseMessage {
         return 'Subscription not found.';
       case ResponseMessage.requiredField:
         return 'Required must be filled';
+      case ResponseMessage.userLogin:
+        return 'User Login';
       default:
         return 'Undefined message.';
     }

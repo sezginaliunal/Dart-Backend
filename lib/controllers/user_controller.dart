@@ -62,7 +62,10 @@ class UserController extends IUserController {
   Future<ResponseHandler> fetchAllUser() async {
     final result = await _db.fetchAllData(collectionName);
     if (result.success) {
-      return ResponseHandler(success: true, data: result.data);
+      return ResponseHandler(
+        success: true,
+        data: result.data,
+      );
     }
     return ResponseHandler();
   }

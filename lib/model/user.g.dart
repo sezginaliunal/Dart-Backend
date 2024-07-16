@@ -10,14 +10,12 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       id: json['_id'] as String?,
       email: json['email'] as String?,
       password: json['password'] as String?,
-      transactions: (json['transactions'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+      avatar: json['avatar'] as String?,
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
-      '_id': instance.id,
+      '_id': Uuid().v4(),
       'email': instance.email,
       'password': instance.password.toString().toSha256(),
-      'transactions': instance.transactions,
+      'avatar': instance.avatar,
     };

@@ -1,3 +1,4 @@
+import 'package:minersy_lite/services/auth/jwt_service.dart';
 import 'package:minersy_lite/services/db/base_db.dart';
 import 'package:minersy_lite/services/db/db.dart';
 import 'package:minersy_lite/config/constants/collections.dart';
@@ -39,7 +40,10 @@ class AuthController extends IAuthController {
     if (userJson.success) {
       final user = User.fromJson(userJson.data);
       if (password.verifySha256(user.password.toString())) {
-        return ResponseHandler(success: true, data: user);
+        final jwt = JwtService();
+        final generateToken = await jwt.createJwt(user);
+
+        return generateToken;
       } else {
         return ResponseHandler(message: ResponseMessage.invalidCredentials);
       }

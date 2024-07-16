@@ -1,6 +1,6 @@
 import 'package:alfred/alfred.dart';
 import 'package:minersy_lite/controllers/auth_controller.dart';
-import 'package:minersy_lite/middleware/auth_middleware.dart';
+import 'package:minersy_lite/middleware/authorization.dart';
 import 'package:minersy_lite/services/features/auth.dart';
 
 class AuthRoute {

@@ -1,30 +1,28 @@
 import 'dart:io';
 
 import 'package:alfred/alfred.dart';
-
-final _uploadDirectory = Directory('uploadedFiles');
+import 'package:minersy_lite/main.dart';
 
 class FileUploadController {
-  static Future<Map<String, String>> handleUpload(
-      HttpRequest req, HttpResponse res) async {
-    final body = await req.bodyAsJsonMap;
+  Future<String> handleFileUpload(
+      HttpRequest req, Map<String, dynamic> body) async {
+    final uploadedFile = (body['file'] as HttpBodyFileUpload);
 
     // Create the upload directory if it doesn't exist
-    if (!(await _uploadDirectory.exists())) {
-      await _uploadDirectory.create();
+    if (!(await uploadDirectory.exists())) {
+      await uploadDirectory.create();
     }
 
     // Get the uploaded file content
-    final uploadedFile = (body['file'] as HttpBodyFileUpload);
-    var fileBytes = (uploadedFile.content as List<int>);
+    var fileBytes = uploadedFile.content as List<int>;
 
     // Create the local file name and save the file
-    await File('${_uploadDirectory.path}/${uploadedFile.filename}')
-        .writeAsBytes(fileBytes);
+    final filePath = '${uploadDirectory.path}/${uploadedFile.filename}';
+    await File(filePath).writeAsBytes(fileBytes);
 
-    // Return the path to the user
-    final filePath =
+    // Construct the avatar URL
+    final avatarUrl =
         'https://${req.headers.host}/files/${uploadedFile.filename}';
-    return {'path': filePath};
+    return avatarUrl;
   }
 }
