@@ -10,6 +10,7 @@ abstract class IUserController {
       String id, String documentFieldName, String documentId);
   Future<ResponseHandler> updateUser(String id, String field, dynamic value);
   Future<ResponseHandler> fetchAllUser();
+  Future<ResponseHandler> checkAllUserInfo();
 }
 
 class UserController extends IUserController {
@@ -61,6 +62,18 @@ class UserController extends IUserController {
   @override
   Future<ResponseHandler> fetchAllUser() async {
     final result = await _db.fetchAllData(collectionName);
+    if (result.success) {
+      return ResponseHandler(
+        success: true,
+        data: result.data,
+      );
+    }
+    return ResponseHandler();
+  }
+
+  @override
+  Future<ResponseHandler> checkAllUserInfo() async {
+    final result = await fetchAllUser();
     if (result.success) {
       return ResponseHandler(
         success: true,

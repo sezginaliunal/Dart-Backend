@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:alfred/alfred.dart';
+import 'package:minersy_lite/config/constants/strings.dart';
 import 'package:minersy_lite/config/load_env.dart';
-import 'package:minersy_lite/main.dart';
 import 'package:minersy_lite/services/routes/index.dart';
 
 class ServerService {
+  static final uploadDirectory = Directory(ProjectStrings.uploadDirectory);
+
   late Alfred _app;
   Alfred get app => _app;
   static final ServerService _instance = ServerService._init();
@@ -30,6 +34,6 @@ class ServerService {
   }
 
   void _setupFileUploadRoutes() {
-    app.get('/files/*', (req, res) => uploadDirectory);
+    app.get('/public/*', (req, res) => uploadDirectory);
   }
 }

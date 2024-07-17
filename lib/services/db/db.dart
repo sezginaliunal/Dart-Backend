@@ -58,7 +58,9 @@ class MongoDatabase extends IBaseDb {
         .findOne(where.eq(queryName, field));
     if (result != null) {
       return ResponseHandler(
-          success: true, message: ResponseMessage.dataAlreadyExists);
+          success: true,
+          message: ResponseMessage.dataAlreadyExists,
+          data: result);
     }
     return ResponseHandler(
         success: false, message: ResponseMessage.itemNotFound);
@@ -79,7 +81,6 @@ class MongoDatabase extends IBaseDb {
       CollectionPath collectionName, String id) async {
     final ResponseHandler<dynamic> isItemExistSuccess =
         await isItemExist(collectionName, '_id', id);
-
     if (isItemExistSuccess.success) {
       await _db.collection(collectionName.rawValue).deleteOne({'_id': id});
       return ResponseHandler(
@@ -110,7 +111,6 @@ class MongoDatabase extends IBaseDb {
     final data = await _db
         .collection(collectionName.rawValue)
         .findOne(where.eq(field, value));
-
     if (data != null) {
       return ResponseHandler(success: true, data: data);
     }
@@ -129,6 +129,16 @@ class MongoDatabase extends IBaseDb {
           modify.push(pushField, documentId),
         );
     return ResponseHandler(success: true, message: ResponseMessage.itemAdded);
+  }
+
+  // Update all documents
+  @override
+  Future<ResponseHandler> updateAll(
+      CollectionPath collectionName, String field, dynamic value) async {
+    await _db
+        .collection(collectionName.rawValue)
+        .update(where, modify.set(field, value), multiUpdate: true);
+    return ResponseHandler(success: true, message: ResponseMessage.itemUpdated);
   }
 
   // Delete a document from the transactions array

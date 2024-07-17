@@ -1,6 +1,7 @@
 enum CollectionPath {
   users,
   transactions,
+  tokens,
 }
 
 extension CollectionPathExtension on CollectionPath {
@@ -10,6 +11,8 @@ extension CollectionPathExtension on CollectionPath {
         return 'users';
       case CollectionPath.transactions:
         return 'transactions';
+      case CollectionPath.tokens:
+        return 'tokens';
     }
   }
 }

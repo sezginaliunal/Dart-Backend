@@ -17,7 +17,7 @@ class AuthController extends IAuthController {
 
   @override
   Future<ResponseHandler> register(User user) async {
-    final ResponseHandler<dynamic> isItemExistSuccess =
+    final isItemExistSuccess =
         await _dbInstance.isItemExist(collectionName, 'email', user.email);
     if (!isItemExistSuccess.success) {
       final result = await _dbInstance.insertData(

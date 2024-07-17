@@ -8,6 +8,8 @@ abstract class IBaseDb {
   Future<void> closeDb();
   Future<void> autoMigrate();
   Future<bool> isDbOpen();
+  Future<ResponseHandler> updateAll(
+      CollectionPath collectionName, String field, dynamic value);
   Future<ResponseHandler> isItemExist(
     CollectionPath collectionName,
     String queryName,

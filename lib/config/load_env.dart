@@ -25,6 +25,7 @@ class Env {
   static final Env _instance = Env._init();
 
   Env._init() {
+    print("Çalıştı");
     _env = DotEnv(includePlatformEnvironment: true)..load();
     _envConfig = EnvConfig(
       host: _env['HOST'].toString(),

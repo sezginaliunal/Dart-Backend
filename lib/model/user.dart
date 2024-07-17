@@ -27,7 +27,7 @@ class User {
       id: id ?? this.id,
       email: email ?? this.email,
       password: password ?? this.password,
-      avatar: password ?? this.avatar,
+      avatar: avatar ?? this.avatar,
     );
   }
 }
