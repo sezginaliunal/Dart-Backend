@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:alfred/alfred.dart';
-import 'package:minersy_lite/services/auth/jwt_service.dart';
-import 'package:minersy_lite/utils/helpers/response_handler.dart';
+import 'package:cloud_mining/services/auth/jwt_service.dart';
+import 'package:cloud_mining/utils/helpers/response_handler.dart';
 
 class Middleware {
   final JwtService jwtService = JwtService();
@@ -11,16 +11,18 @@ class Middleware {
     final authHeader = req.headers.value('Authorization');
 
     if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return await res
+      await res
           .json(ResponseHandler(message: ResponseMessage.unauthorizedAccess));
+      return;
     }
 
-    final token = authHeader.substring(7); // 'Bearer ' sonrasını alıyoruz
+    final token = authHeader.substring(7);
 
     final response = await jwtService.checkJwt(token);
 
     if (!response.success) {
-      return await res.json(response);
+      await res.json(response);
+      return;
     }
   }
 }
