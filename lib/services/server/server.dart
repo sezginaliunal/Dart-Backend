@@ -18,6 +18,7 @@ class ServerService {
     _app = Alfred();
 
     _setupFileUploadRoutes();
+    _app.all('*', cors(origin: '*'));
 
     _setupRoutes();
   }

@@ -15,15 +15,18 @@ class AuthService extends IAuthService {
   @override
   Future<void> register(HttpRequest req, HttpResponse res) async {
     try {
-      final body = await req.bodyAsJsonMap;
-      final String email = body['email'];
-      final String password = body['password'];
-      if (email.trim().isNotEmpty && password.trim().isNotEmpty) {
-        final user = User(email: email, password: password);
-        final result = await authController.register(user);
-        await res.json(result);
-      } else {
-        await res.json(ResponseHandler(message: ResponseMessage.requiredField));
+      final jsonData = await req.parseBodyJson();
+      if (jsonData != null) {
+        final String email = jsonData['email'];
+        final String password = jsonData['password'];
+        if (email.trim().isNotEmpty && password.trim().isNotEmpty) {
+          final user = User(email: email, password: password);
+          final result = await authController.register(user);
+          await res.json(result);
+        } else {
+          await res
+              .json(ResponseHandler(message: ResponseMessage.requiredField));
+        }
       }
     } catch (e) {
       await res.json(ResponseHandler());

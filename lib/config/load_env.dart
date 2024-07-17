@@ -27,6 +27,7 @@ class Env {
   Env._init() {
     print("Çalıştı");
     _env = DotEnv(includePlatformEnvironment: true)..load();
+
     _envConfig = EnvConfig(
       host: _env['HOST'].toString(),
       db: _env['DB'].toString(),
