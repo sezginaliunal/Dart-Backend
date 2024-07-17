@@ -4,7 +4,7 @@ import 'package:alfred/alfred.dart';
 import 'package:minersy_lite/services/auth/jwt_service.dart';
 import 'package:minersy_lite/utils/helpers/response_handler.dart';
 
-class Middleware {
+class AuthorizationMiddleware {
   final JwtService jwtService = JwtService();
 
   FutureOr authorize(HttpRequest req, HttpResponse res) async {

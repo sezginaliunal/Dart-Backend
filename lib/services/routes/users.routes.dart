@@ -6,7 +6,7 @@ import 'package:minersy_lite/services/features/user.dart';
 class UsersRoute {
   final IUserController userController = UserController();
   final IUserService userService = UserService();
-  final AuthMiddleware middleware = AuthMiddleware();
+  final AuthorizationMiddleware middleware = AuthorizationMiddleware();
 
   Future<void> setupRoutes(NestedRoute app) async {
     app.get(
