@@ -1,4 +1,4 @@
-name: minersy_lite
+name: project_base
 description: A sample command-line application.
 version: 1.0.0
 # repository: https://github.com/my_org/my_repo
@@ -14,6 +14,7 @@ dependencies:
   dart_jsonwebtoken: ^2.14.0
   dotenv: ^4.2.0
   json_annotation: ^4.9.0
+  mailer: ^6.1.2
   mongo_dart: ^0.10.3
   uuid: ^4.4.2
   # path: ^1.8.0

@@ -1,27 +1,30 @@
+import 'dart:io';
+
 import 'package:alfred/alfred.dart';
-import 'package:minersy_lite/controllers/user_controller.dart';
+import 'package:project_base/controllers/user_controller.dart';
+import 'package:project_base/model/api_response.dart';
+import 'package:project_base/utils/helpers/json_helper.dart';
 
-abstract class IUserService {
-  Future<void> getAllUsers(HttpRequest req, HttpResponse res);
-  Future<void> getUserById(HttpRequest req, HttpResponse res);
-}
+class UserService {
+  final UserController userController = UserController();
 
-class UserService extends IUserService {
-  final IUserController userController = UserController();
+  Future getUserById(HttpRequest req, HttpResponse res) async {
+    final params = req.params;
+    if (params.isNotEmpty) {
+      final id = params['id'];
 
-  @override
-  Future<void> getAllUsers(HttpRequest req, HttpResponse res) async {
-    final result = await userController.fetchAllUser();
+      final result = await userController.getUserById(id);
 
-    await res.json(result);
-  }
-
-  @override
-  Future<void> getUserById(HttpRequest req, HttpResponse res) async {
-    String userId = req.params['id'];
-
-    final result = await userController.fetchUser(userId);
-
-    await res.json(result);
+      return JsonResponseHelper.sendJsonResponse(
+        statusCode: result.statusCode,
+        res,
+        result,
+      );
+    } else {
+      return JsonResponseHelper.sendJsonResponse(
+          statusCode: HttpStatus.badRequest,
+          res,
+          ApiResponse(success: false, message: 'Body boş olamaz'));
+    }
   }
 }

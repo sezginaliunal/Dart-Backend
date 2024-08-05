@@ -5,16 +5,25 @@ class EnvConfig {
   final String db;
   final String port;
   final String jwtIssuer;
-  final String jwtSecretKey;
-  final String jwtExpirationSeconds;
+  final String jwtAccessSecretKey;
+  final String jwtRefreshSecretKey;
+  final String jwtAccessTokenExpirationSeconds;
+  final String jwtRefreshTokenExpirationSeconds;
+  final String smtpMail;
+  final String smtpPassword;
 
-  EnvConfig(
-      {required this.host,
-      required this.db,
-      required this.port,
-      required this.jwtIssuer,
-      required this.jwtSecretKey,
-      required this.jwtExpirationSeconds});
+  EnvConfig({
+    required this.host,
+    required this.db,
+    required this.port,
+    required this.jwtIssuer,
+    required this.jwtAccessSecretKey,
+    required this.jwtRefreshSecretKey,
+    required this.jwtAccessTokenExpirationSeconds,
+    required this.jwtRefreshTokenExpirationSeconds,
+    required this.smtpMail,
+    required this.smtpPassword,
+  });
 }
 
 class Env {
@@ -25,16 +34,20 @@ class Env {
   static final Env _instance = Env._init();
 
   Env._init() {
-    print("Çalıştı");
     _env = DotEnv(includePlatformEnvironment: true)..load();
-
     _envConfig = EnvConfig(
       host: _env['HOST'].toString(),
       db: _env['DB'].toString(),
       port: _env['PORT'].toString(),
       jwtIssuer: env['JWT_ISSUER'].toString(),
-      jwtSecretKey: env['JWT_SECRET_KEY'].toString(),
-      jwtExpirationSeconds: env['JWT_EXPIRATION_SECONDS'].toString(),
+      jwtAccessSecretKey: env['JWT_SECRET_KEY'].toString(),
+      jwtRefreshSecretKey: env['JWT_REFRESH_SECRET_KEY'].toString(),
+      jwtAccessTokenExpirationSeconds:
+          env['JWT_ACCESS_TOKEN_EXPIRATION_SECONDS'].toString(),
+      jwtRefreshTokenExpirationSeconds:
+          env['JWT_REFRESH_TOKEN_EXPIRATION_SECONDS'].toString(),
+      smtpMail: env['SMTP_MAIL'].toString(),
+      smtpPassword: env['SMTP_PASSWORD'].toString(),
     );
   }
 

@@ -6,18 +6,14 @@ part of 'jwt.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-JwtToken _$JwtTokenFromJson(Map<String, dynamic> json) => JwtToken(
-      id: json['_id'] as String?,
-      userId: json['userId'] as String?,
-      token: json['token'] as String?,
-      createdAt: (json['createdAt'] as num?)?.toInt(),
-      expiresAt: (json['expiresAt'] as num?)?.toInt(),
+JwtModel _$JwtModelFromJson(Map<String, dynamic> json) => JwtModel(
+      id: json['_id'] as String,
+      accessToken: json['accessToken'] as String,
+      userId: json['userId'] as String,
     );
 
-Map<String, dynamic> _$JwtTokenToJson(JwtToken instance) => <String, dynamic>{
-      '_id': Uuid().v4(),
+Map<String, dynamic> _$JwtModelToJson(JwtModel instance) => <String, dynamic>{
+      '_id': instance.id,
+      'accessToken': instance.accessToken,
       'userId': instance.userId,
-      'token': instance.token,
-      'createdAt': instance.createdAt,
-      'expiresAt': instance.expiresAt,
     };

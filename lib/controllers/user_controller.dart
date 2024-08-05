@@ -1,85 +1,57 @@
-import 'package:minersy_lite/services/db/base_db.dart';
-import 'package:minersy_lite/services/db/db.dart';
-import 'package:minersy_lite/config/constants/collections.dart';
-import 'package:minersy_lite/utils/helpers/response_handler.dart';
+import 'dart:io';
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:project_base/config/constants/collections.dart';
+import 'package:project_base/model/api_response.dart';
+import 'package:project_base/model/user.dart';
+import 'package:project_base/services/db/db.dart';
 
-abstract class IUserController {
-  Future<ResponseHandler> fetchUser(String id);
-  Future<ResponseHandler> delete(String id);
-  Future<ResponseHandler> deleteDocument(
-      String id, String documentFieldName, String documentId);
-  Future<ResponseHandler> updateUser(String id, String field, dynamic value);
-  Future<ResponseHandler> fetchAllUser();
-  Future<ResponseHandler> checkAllUserInfo();
-}
+class UserController {
+  final MongoDatabase _dbInstance = MongoDatabase();
+  final String _collectionPath = CollectionPath.users.rawValue;
 
-class UserController extends IUserController {
-  final IBaseDb _db = MongoDatabase();
-  final CollectionPath collectionName = CollectionPath.users;
-
-  @override
-  Future<ResponseHandler> delete(String id) async {
-    final result = await _db.deleteData(collectionName, id);
-    if (result.success) {
-      return ResponseHandler(
-          success: true, message: ResponseMessage.itemDeleted);
+  // Kullanıcıyı e-posta ile kontrol etme
+  Future<ApiResponse<User?>> isUserExist(String email) async {
+    final result = await _dbInstance.db
+        .collection(_collectionPath)
+        .findOne(where.eq('email', email));
+    if (result != null) {
+      final user = User.fromJson(result);
+      return ApiResponse(success: true, data: user);
+    } else {
+      return ApiResponse(
+          data: null,
+          message: 'Kullanıcı bulunamadı',
+          statusCode: HttpStatus.notFound);
     }
-    return ResponseHandler(message: ResponseMessage.unexpectedError);
   }
 
-  @override
-  Future<ResponseHandler> deleteDocument(
-      String id, String documentFieldName, String documentId) async {
-    final result = await _db.deleteDocument(
-        collectionName, id, documentFieldName, documentId);
-    if (result.success) {
-      return ResponseHandler(
-          success: true, message: ResponseMessage.itemDeleted);
+  // Kullanıcıyı ID ile getirme
+  Future<ApiResponse<User?>> getUserById(String id) async {
+    try {
+      final result = await _dbInstance.db
+          .collection(_collectionPath)
+          .findOne(where.eq('_id', id));
+
+      if (result != null) {
+        final user = User.fromJson(result);
+        return ApiResponse(success: true, data: user);
+      } else {
+        return ApiResponse(
+            data: null,
+            message: 'Kullanıcı bulunamadı',
+            statusCode: HttpStatus.notFound);
+      }
+    } catch (e) {
+      return ApiResponse(
+          data: null,
+          message: 'Bir hata oluştu: ${e.toString()}',
+          statusCode: HttpStatus.internalServerError);
     }
-    return ResponseHandler(message: ResponseMessage.unexpectedError);
   }
 
-  @override
-  Future<ResponseHandler> fetchUser(String id) async {
-    final result = await _db.fetchOneData(collectionName, '_id', id);
-
-    if (result.success) {
-      return ResponseHandler(success: true, data: result.data);
-    }
-    return ResponseHandler(message: ResponseMessage.itemNotFound);
-  }
-
-  @override
-  Future<ResponseHandler> updateUser(
-      String id, String field, dynamic value) async {
-    final result = await _db.updateOneData(collectionName, id, field, value);
-    if (result.success) {
-      return ResponseHandler(success: true, data: result.data);
-    }
-    return ResponseHandler();
-  }
-
-  @override
-  Future<ResponseHandler> fetchAllUser() async {
-    final result = await _db.fetchAllData(collectionName);
-    if (result.success) {
-      return ResponseHandler(
-        success: true,
-        data: result.data,
-      );
-    }
-    return ResponseHandler();
-  }
-
-  @override
-  Future<ResponseHandler> checkAllUserInfo() async {
-    final result = await fetchAllUser();
-    if (result.success) {
-      return ResponseHandler(
-        success: true,
-        data: result.data,
-      );
-    }
-    return ResponseHandler();
+  Future<void> updateUser(String userId, String field, dynamic value) async {
+    await _dbInstance.db
+        .collection(_collectionPath)
+        .updateOne(where.eq('_id', userId), modify.set(field, value));
   }
 }

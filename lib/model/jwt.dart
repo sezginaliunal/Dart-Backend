@@ -1,40 +1,22 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:uuid/uuid.dart';
+
 part 'jwt.g.dart';
 
 @JsonSerializable()
-class JwtToken {
-  String? id;
-  String? userId;
-  String? token;
-  int? createdAt;
-  int? expiresAt;
+class JwtModel {
+  @JsonKey(name: '_id')
+  final String id;
+  final String accessToken;
+  final String userId;
 
-  JwtToken({
-    this.id,
-    this.userId,
-    this.token,
-    this.createdAt,
-    this.expiresAt,
+  JwtModel({
+    required this.id,
+    required this.accessToken,
+    required this.userId,
   });
 
-  factory JwtToken.fromJson(Map<String, dynamic> json) =>
-      _$JwtTokenFromJson(json);
+  factory JwtModel.fromJson(Map<String, dynamic> json) =>
+      _$JwtModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$JwtTokenToJson(this);
-
-  JwtToken copyWith({
-    String? userId,
-    String? token,
-    int? createdAt,
-    int? expiresAt,
-  }) {
-    return JwtToken(
-      id: id ?? id,
-      userId: userId ?? this.userId,
-      token: token ?? this.token,
-      createdAt: createdAt ?? this.createdAt,
-      expiresAt: expiresAt ?? this.expiresAt,
-    );
-  }
+  Map<String, dynamic> toJson() => _$JwtModelToJson(this);
 }
