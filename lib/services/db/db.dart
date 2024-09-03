@@ -1,18 +1,17 @@
-import 'package:project_base/config/load_env.dart';
 import 'package:project_base/config/constants/collections.dart';
+import 'package:project_base/config/load_env.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 class MongoDatabase {
-  late Db _db;
-  Db get db => _db;
-  static final MongoDatabase _instance = MongoDatabase._init();
-  final _env = Env();
+  factory MongoDatabase() => _instance;
 
   MongoDatabase._init() {
     _db = Db(_env.envConfig.db);
   }
-
-  factory MongoDatabase() => _instance;
+  late Db _db;
+  Db get db => _db;
+  static final MongoDatabase _instance = MongoDatabase._init();
+  final _env = Env();
 
   // Connect to database
   Future<void> connectDb() async {
@@ -27,9 +26,9 @@ class MongoDatabase {
 
   // Auto migrate for collections
   Future<void> autoMigrate() async {
-    var collectionInfos = await db.getCollectionNames();
-    for (var collectionInfo in collectionInfos) {
-      for (var collectionName in CollectionPath.values) {
+    final collectionInfos = await db.getCollectionNames();
+    for (final collectionInfo in collectionInfos) {
+      for (final collectionName in CollectionPath.values) {
         if (!collectionInfo!.contains(collectionName.rawValue)) {
           await db.createCollection(collectionName.rawValue);
         }

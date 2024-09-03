@@ -16,6 +16,18 @@ enum AccountRole {
 
 @JsonSerializable()
 class User {
+  User({
+    required this.id,
+    required this.name,
+    required this.surname,
+    required this.email,
+    required this.password,
+    this.pushNotificationId,
+    this.accountStatus = AccountStatus.active,
+    this.accountRole = AccountRole.user,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   @JsonKey(name: '_id')
   final String id;
   final String? pushNotificationId;
@@ -27,19 +39,6 @@ class User {
   final AccountStatus accountStatus;
   @JsonKey(defaultValue: AccountRole.user)
   final AccountRole accountRole;
-
-  User({
-    required this.id,
-    this.pushNotificationId,
-    required this.name,
-    required this.surname,
-    required this.email,
-    required this.password,
-    this.accountStatus = AccountStatus.active,
-    this.accountRole = AccountRole.user,
-  });
-
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserToJson(this);
 }

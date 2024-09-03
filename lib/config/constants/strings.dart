@@ -1,3 +1,3 @@
 class ProjectStrings {
-  static final uploadDirectory = 'public';
+  static const uploadDirectory = 'public';
 }

@@ -1,9 +1,10 @@
 import 'dart:io';
-import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
+import 'package:project_base/config/constants/response_messages.dart';
 import 'package:project_base/model/api_response.dart';
 import 'package:project_base/model/user.dart';
 import 'package:project_base/services/db/db.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 
 class UserController {
   final MongoDatabase _dbInstance = MongoDatabase();
@@ -16,12 +17,12 @@ class UserController {
         .findOne(where.eq('email', email));
     if (result != null) {
       final user = User.fromJson(result);
-      return ApiResponse(success: true, data: user);
+      return ApiResponse(data: user);
     } else {
       return ApiResponse(
-          data: null,
-          message: 'Kullanıcı bulunamadı',
-          statusCode: HttpStatus.notFound);
+        message: ResponseMessages.userNotFound.message,
+        statusCode: HttpStatus.notFound,
+      );
     }
   }
 
@@ -34,21 +35,22 @@ class UserController {
 
       if (result != null) {
         final user = User.fromJson(result);
-        return ApiResponse(success: true, data: user);
+        return ApiResponse(data: user);
       } else {
         return ApiResponse(
-            data: null,
-            message: 'Kullanıcı bulunamadı',
-            statusCode: HttpStatus.notFound);
+          message: ResponseMessages.userNotFound.message,
+          statusCode: HttpStatus.notFound,
+        );
       }
     } catch (e) {
       return ApiResponse(
-          data: null,
-          message: 'Bir hata oluştu: ${e.toString()}',
-          statusCode: HttpStatus.internalServerError);
+        message: ResponseMessages.somethingError.message,
+        statusCode: HttpStatus.internalServerError,
+      );
     }
   }
 
+// Kullanıcıyı güncelleme
   Future<void> updateUser(String userId, String field, dynamic value) async {
     await _dbInstance.db
         .collection(_collectionPath)

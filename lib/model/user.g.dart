@@ -8,11 +8,11 @@ part of 'user.dart';
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
       id: json['_id'] as String,
-      pushNotificationId: json['pushNotificationId'] as String?,
       name: json['name'] as String,
       surname: json['surname'] as String,
       email: json['email'] as String,
       password: json['password'] as String,
+      pushNotificationId: json['pushNotificationId'] as String?,
       accountStatus:
           $enumDecodeNullable(_$AccountStatusEnumMap, json['accountStatus']) ??
               AccountStatus.active,
@@ -28,8 +28,8 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'surname': instance.surname,
       'email': instance.email,
       'password': instance.password,
-      'accountStatus': _$AccountStatusEnumMap[instance.accountStatus]!,
-      'accountRole': _$AccountRoleEnumMap[instance.accountRole]!,
+      'accountStatus': _$AccountStatusEnumMap[instance.accountStatus],
+      'accountRole': _$AccountRoleEnumMap[instance.accountRole],
     };
 
 const _$AccountStatusEnumMap = {

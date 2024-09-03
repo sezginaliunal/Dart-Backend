@@ -1,20 +1,23 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:project_base/config/load_env.dart';
 
 class StmpService {
-  static final StmpService _instance = StmpService._init();
-  late final Env _env;
+  factory StmpService() => _instance;
 
   StmpService._init() {
     _env = Env();
   }
-
-  factory StmpService() => _instance;
+  static final StmpService _instance = StmpService._init();
+  late final Env _env;
 
   Future<void> sendMessage(
-      String userMail, String newPassword, String username) async {
+    String userMail,
+    String newPassword,
+    String username,
+  ) async {
     final smtpServer = gmail(
       _env.envConfig.smtpMail,
       _env.envConfig.smtpPassword,
@@ -36,11 +39,10 @@ class StmpService {
       ..html = htmlMessage;
 
     try {
-      final sendReport = await send(message, smtpServer);
-      print('Message sent: $sendReport');
+      await send(message, smtpServer);
     } on MailerException catch (e) {
-      for (var p in e.problems) {
-        print('Problem: ${p.code}: ${p.msg}');
+      for (final p in e.problems) {
+        log('Problem: ${p.code}: ${p.msg}');
       }
     }
   }

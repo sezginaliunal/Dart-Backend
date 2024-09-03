@@ -1,33 +1,36 @@
 import 'dart:io';
-
-import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
+import 'package:project_base/config/constants/response_messages.dart';
+import 'package:project_base/controllers/user_controller.dart';
+
 import 'package:project_base/model/api_response.dart';
 import 'package:project_base/model/jwt.dart';
 import 'package:project_base/model/user.dart';
 import 'package:project_base/services/db/db.dart';
+import 'package:project_base/services/features/jwt.dart';
 import 'package:project_base/utils/extensions/hash_string.dart';
 import 'package:project_base/utils/extensions/validators.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 
 class AuthController {
   final MongoDatabase _dbInstance = MongoDatabase();
   final String _collectionPath = CollectionPath.users.rawValue;
+  // Kayıt olma
   Future<ApiResponse<User>> register(User user) async {
     if (!user.email.isValidEmail) {
       return ApiResponse<User>(
-          success: false,
-          message: 'Geçersiz email formatı',
-          statusCode: HttpStatus.badRequest // Bad Request
-          );
+        success: false,
+        message: ResponseMessages.invalidEmail.message,
+        statusCode: HttpStatus.badRequest,
+      );
     }
 
     if (!user.password.isValidPassword) {
       return ApiResponse<User>(
-          success: false,
-          message:
-              'Şifre en az 8 karakter uzunluğunda ve bir harf ile bir rakam içermelidir',
-          statusCode: HttpStatus.badRequest // Bad Request
-          );
+        success: false,
+        statusCode: HttpStatus.badRequest,
+        message: ResponseMessages.invalidPassword.message,
+      );
     }
 
     final isUserExist = await _dbInstance.db
@@ -37,7 +40,7 @@ class AuthController {
     if (isUserExist != null) {
       return ApiResponse<User>(
         success: false,
-        message: 'Bu emaile kayıtlı kullanıcı var',
+        message: ResponseMessages.existUser.message,
         statusCode: HttpStatus.conflict, // Conflict
       );
     } else {
@@ -46,16 +49,20 @@ class AuthController {
 
       await _dbInstance.db.collection(_collectionPath).insert(user.toJson());
       return ApiResponse<User>(
-          message: 'Kullanıcı kayıt oldu', statusCode: HttpStatus.created);
+        message: ResponseMessages.successRegister.message,
+        statusCode: HttpStatus.created,
+      );
     }
   }
 
-  Future<ApiResponse> login(String email, String password) async {
+  //Giriş yapma
+  Future<ApiResponse<void>> login(String email, String password) async {
     if (!email.isValidEmail) {
       return ApiResponse(
-          success: false,
-          message: 'Geçersiz email formatı',
-          statusCode: HttpStatus.badRequest);
+        success: false,
+        message: ResponseMessages.invalidEmail.message,
+        statusCode: HttpStatus.badRequest,
+      );
     }
 
     final user = await _dbInstance.db
@@ -63,37 +70,36 @@ class AuthController {
         .findOne(where.eq('email', email));
 
     if (user != null) {
-      final accountStatus = user['accountStatus'] as String;
+      final accountStatus = user['accountStatus'].toString();
 
       if (accountStatus == AccountStatus.suspended.name ||
           accountStatus == AccountStatus.inactive.name) {
         return ApiResponse(
           success: false,
-          message: 'Hesap şüpheli veya aktif değil',
+          message: ResponseMessages.suspendUser.message,
           statusCode: HttpStatus.badRequest,
         );
       }
 
-      final hashedPassword = user['password'] as String;
+      final hashedPassword = user['password'].toString();
 
       if (password.verifySha256(hashedPassword)) {
         return ApiResponse(
-          success: true,
-          message: 'Giriş başarılı',
+          message: ResponseMessages.successLogin.message,
           statusCode: HttpStatus.ok,
         );
       } else {
         return ApiResponse(
           success: false,
-          message: 'Şifre yanlış',
+          message: ResponseMessages.wrongPassword.message,
           statusCode: HttpStatus.badRequest, // Unauthorized
         );
       }
     } else {
       return ApiResponse(
         success: false,
-        message: 'Kullanıcı bulunamadı',
-        statusCode: HttpStatus.notFound, // Not Found
+        message: ResponseMessages.userNotFound.message,
+        statusCode: HttpStatus.unauthorized, // Not Found
       );
     }
   }
@@ -108,11 +114,38 @@ class AuthController {
         .insert(jwt.toJson());
   }
 
-  Future<ApiResponse> logout(String accessToken) async {
+  Future<ApiResponse<void>> logout(String accessToken) async {
     await _dbInstance.db
         .collection(CollectionPath.token.rawValue)
         .deleteOne(where.eq('accessToken', accessToken));
     return ApiResponse(
-        success: true, message: 'Çıkış yapıldı', statusCode: HttpStatus.ok);
+      message: ResponseMessages.successLogout.message,
+      statusCode: HttpStatus.ok,
+    );
+  }
+
+  Future<ApiResponse<void>> refreshToken(String userId) async {
+    final user = await UserController().getUserById(userId);
+
+    if (user.data != null) {
+      final jwt = await JwtService().createJwt(user.data!);
+      await _dbInstance.db
+          .collection(CollectionPath.token.rawValue)
+          .deleteMany(where.eq('userId', userId));
+
+      await _dbInstance.db
+          .collection(CollectionPath.token.rawValue)
+          .insert(jwt.toJson());
+      return ApiResponse(
+        message: ResponseMessages.updateToken.message,
+        statusCode: HttpStatus.ok,
+      );
+    } else {
+      return ApiResponse(
+        message: ResponseMessages.userNotFound.message,
+        statusCode: HttpStatus.notFound,
+        success: false,
+      );
+    }
   }
 }

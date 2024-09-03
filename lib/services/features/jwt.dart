@@ -1,22 +1,21 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
 import 'package:project_base/config/load_env.dart';
 import 'package:project_base/model/jwt.dart';
 import 'package:project_base/model/user.dart';
 import 'package:project_base/services/db/db.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:uuid/uuid.dart';
 
 class JwtService {
-  static final JwtService _instance = JwtService._init();
-  late final Env _env;
-  final MongoDatabase _db = MongoDatabase();
+  factory JwtService() => _instance;
 
   JwtService._init() {
     _env = Env();
   }
-
-  factory JwtService() => _instance;
+  static final JwtService _instance = JwtService._init();
+  late final Env _env;
+  final MongoDatabase _db = MongoDatabase();
 
   Future<JwtModel> createJwt(User user) async {
     final payloadAccessToken = {
@@ -26,17 +25,36 @@ class JwtService {
       'exp': (DateTime.now().millisecondsSinceEpoch ~/ 1000) +
           int.parse(_env.envConfig.jwtAccessTokenExpirationSeconds),
     };
+    final payloadRefreshToken = {
+      'sub': user.id,
+      'name': user.email,
+      'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'exp': (DateTime.now().millisecondsSinceEpoch ~/ 1000) +
+          int.parse(_env.envConfig.jwtRefreshTokenExpirationSeconds),
+    };
 
     final jwtAccess = JWT(
       payloadAccessToken,
       issuer: _env.envConfig.jwtIssuer,
     );
-
+    final jwtRefresh = JWT(
+      payloadRefreshToken,
+      issuer: _env.envConfig.jwtIssuer,
+    );
     final accessSecretKey = SecretKey(_env.envConfig.jwtAccessSecretKey);
     final accessToken = jwtAccess.sign(accessSecretKey);
+    //Refresh token scretkey
 
-    final jwtModel =
-        JwtModel(id: Uuid().v4(), accessToken: accessToken, userId: user.id);
+    final refreshSecretKey = SecretKey(_env.envConfig.jwtRefreshSecretKey);
+    //Refresh token sign
+    final refreshToken = jwtRefresh.sign(refreshSecretKey);
+
+    final jwtModel = JwtModel(
+      id: const Uuid().v4(),
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      userId: user.id,
+    );
 
     return jwtModel;
   }
@@ -54,8 +72,10 @@ class JwtService {
           return false;
         }
 
-        JWT.verify(parsedJwt.accessToken.toString(),
-            SecretKey(_env.envConfig.jwtAccessSecretKey));
+        JWT.verify(
+          parsedJwt.accessToken,
+          SecretKey(_env.envConfig.jwtAccessSecretKey),
+        );
         return true;
       }
 

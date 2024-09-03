@@ -4,8 +4,8 @@ import 'package:crypto/crypto.dart';
 extension StringHashing on String {
   /// String'i SHA-256 algoritması ile hashler ve Base64 olarak döner
   String toSha256() {
-    var bytes = utf8.encode(this);
-    var digest = sha256.convert(bytes);
+    final bytes = utf8.encode(this);
+    final digest = sha256.convert(bytes);
     return base64.encode(digest.bytes);
   }
 

@@ -1,17 +1,6 @@
 import 'package:dotenv/dotenv.dart';
 
 class EnvConfig {
-  final String host;
-  final String db;
-  final String port;
-  final String jwtIssuer;
-  final String jwtAccessSecretKey;
-  final String jwtRefreshSecretKey;
-  final String jwtAccessTokenExpirationSeconds;
-  final String jwtRefreshTokenExpirationSeconds;
-  final String smtpMail;
-  final String smtpPassword;
-
   EnvConfig({
     required this.host,
     required this.db,
@@ -24,14 +13,20 @@ class EnvConfig {
     required this.smtpMail,
     required this.smtpPassword,
   });
+  final String host;
+  final String db;
+  final String port;
+  final String jwtIssuer;
+  final String jwtAccessSecretKey;
+  final String jwtRefreshSecretKey;
+  final String jwtAccessTokenExpirationSeconds;
+  final String jwtRefreshTokenExpirationSeconds;
+  final String smtpMail;
+  final String smtpPassword;
 }
 
 class Env {
-  late DotEnv _env;
-  late EnvConfig _envConfig;
-  DotEnv get env => _env;
-  EnvConfig get envConfig => _envConfig;
-  static final Env _instance = Env._init();
+  factory Env() => _instance;
 
   Env._init() {
     _env = DotEnv(includePlatformEnvironment: true)..load();
@@ -50,6 +45,9 @@ class Env {
       smtpPassword: env['SMTP_PASSWORD'].toString(),
     );
   }
-
-  factory Env() => _instance;
+  late DotEnv _env;
+  late EnvConfig _envConfig;
+  DotEnv get env => _env;
+  EnvConfig get envConfig => _envConfig;
+  static final Env _instance = Env._init();
 }

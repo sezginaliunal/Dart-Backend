@@ -7,7 +7,10 @@ class UsersRoute {
   final Middleware middleware = Middleware();
 
   Future<void> setupRoutes(NestedRoute app) async {
-    app.get('/users/:id', userService.getUserById,
-        middleware: [middleware.authenticate]);
+    app.get(
+      '/users/:id',
+      userService.getUserById,
+      middleware: [middleware.authenticate],
+    );
   }
 }

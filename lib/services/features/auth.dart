@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:alfred/alfred.dart';
+import 'package:project_base/config/constants/response_messages.dart';
 import 'package:project_base/controllers/auth.dart';
 import 'package:project_base/controllers/user_controller.dart';
 import 'package:project_base/model/api_response.dart';
@@ -21,18 +22,19 @@ class AuthService {
   Future<void> register(HttpRequest req, HttpResponse res) async {
     final body = await req.bodyAsJsonMap;
     if (body.isNotEmpty) {
-      final name = body['name'];
-      final surname = body['surname'];
-      final email = body['email'];
-      final password = body['password'];
-      final pushNotificationId = body['pushNotificationId'];
+      final name = body['name'].toString();
+      final surname = body['surname'].toString();
+      final email = body['email'].toString();
+      final password = body['password'].toString();
+      final pushNotificationId = body['pushNotificationId'].toString();
       final user = User(
-          id: Uuid().v4(),
-          name: name,
-          surname: surname,
-          email: email,
-          password: password,
-          pushNotificationId: pushNotificationId);
+        id: const Uuid().v4(),
+        name: name,
+        surname: surname,
+        email: email,
+        password: password,
+        pushNotificationId: pushNotificationId,
+      );
       final result = await authController.register(user);
       return JsonResponseHelper.sendJsonResponse(
         statusCode: result.statusCode,
@@ -41,9 +43,13 @@ class AuthService {
       );
     } else {
       return JsonResponseHelper.sendJsonResponse(
-          statusCode: HttpStatus.badRequest,
-          res,
-          ApiResponse(success: false, message: 'Body boş olamaz'));
+        statusCode: HttpStatus.badRequest,
+        res,
+        ApiResponse(
+          success: false,
+          message: ResponseMessages.invalidBody.message,
+        ),
+      );
     }
   }
 
@@ -51,8 +57,8 @@ class AuthService {
     final body = await req.bodyAsJsonMap;
 
     if (body.isNotEmpty) {
-      final email = body['email'];
-      final password = body['password'];
+      final email = body['email'].toString();
+      final password = body['password'].toString();
 
       final result = await authController.login(email, password);
 
@@ -79,16 +85,20 @@ class AuthService {
       }
     } else {
       return JsonResponseHelper.sendJsonResponse(
-          statusCode: HttpStatus.badRequest,
-          res,
-          ApiResponse(success: false, message: 'Body boş olamaz'));
+        statusCode: HttpStatus.badRequest,
+        res,
+        ApiResponse(
+          success: false,
+          message: ResponseMessages.invalidBody.message,
+        ),
+      );
     }
   }
 
   Future<void> logout(HttpRequest req, HttpResponse res) async {
     final body = await req.bodyAsJsonMap;
     if (body.isNotEmpty) {
-      final accessToken = body['accessToken'];
+      final accessToken = body['accessToken'].toString();
       final result = await authController.logout(accessToken);
 
       return JsonResponseHelper.sendJsonResponse(
@@ -98,29 +108,38 @@ class AuthService {
       );
     } else {
       return JsonResponseHelper.sendJsonResponse(
-          statusCode: HttpStatus.badRequest,
-          res,
-          ApiResponse(success: false, message: 'Body boş olamaz'));
+        statusCode: HttpStatus.badRequest,
+        res,
+        ApiResponse(
+          success: false,
+          message: ResponseMessages.invalidBody.message,
+          statusCode: res.statusCode,
+        ),
+      );
     }
   }
 
   Future<void> resetPassword(HttpRequest req, HttpResponse res) async {
     final body = await req.bodyAsJsonMap;
     if (body.isNotEmpty) {
-      final String email = body['email'];
+      final email = body['email'].toString();
       final user = await userController.isUserExist(email);
       if (user.data != null) {
         final newPassword = PasswordGenerator.generatePassword();
         await userController.updateUser(
-            user.data!.id.toString(), 'password', newPassword.toSha256());
+          user.data!.id,
+          'password',
+          newPassword.toSha256(),
+        );
 
-        await smtpService.sendMessage(user.data!.email.toString(), newPassword,
-            "${user.data?.name} ${user.data?.surname}");
+        await smtpService.sendMessage(
+          user.data!.email,
+          newPassword,
+          '${user.data?.name} ${user.data?.surname}',
+        );
 
         final result = ApiResponse<void>(
-          success: true,
           message: 'New password sent to your email',
-          data: null,
         );
 
         return JsonResponseHelper.sendJsonResponse(
@@ -132,7 +151,7 @@ class AuthService {
         final result = ApiResponse<void>(
           success: false,
           message: 'User not found',
-          data: null,
+          statusCode: HttpStatus.notFound,
         );
         return JsonResponseHelper.sendJsonResponse(
           statusCode: result.statusCode,
@@ -144,7 +163,29 @@ class AuthService {
       final result = ApiResponse<void>(
         success: false,
         message: 'Invalid request',
-        data: null,
+      );
+      return JsonResponseHelper.sendJsonResponse(
+        statusCode: result.statusCode,
+        res,
+        result,
+      );
+    }
+  }
+
+  Future<void> refreshToken(HttpRequest req, HttpResponse res) async {
+    final body = await req.bodyAsJsonMap;
+    if (body.isNotEmpty) {
+      final userId = body['userId'].toString();
+      final result = await authController.refreshToken(userId);
+      return JsonResponseHelper.sendJsonResponse(
+        statusCode: result.statusCode,
+        res,
+        result,
+      );
+    } else {
+      final result = ApiResponse<void>(
+        success: false,
+        message: ResponseMessages.invalidBody.message,
       );
       return JsonResponseHelper.sendJsonResponse(
         statusCode: result.statusCode,
