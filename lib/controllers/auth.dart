@@ -1,8 +1,8 @@
 import 'dart:io';
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
 import 'package:project_base/config/constants/response_messages.dart';
 import 'package:project_base/controllers/user_controller.dart';
-
 import 'package:project_base/model/api_response.dart';
 import 'package:project_base/model/jwt.dart';
 import 'package:project_base/model/user.dart';
@@ -10,7 +10,6 @@ import 'package:project_base/services/db/db.dart';
 import 'package:project_base/services/features/jwt.dart';
 import 'package:project_base/utils/extensions/hash_string.dart';
 import 'package:project_base/utils/extensions/validators.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 
 class AuthController {
   final MongoDatabase _dbInstance = MongoDatabase();
@@ -70,10 +69,11 @@ class AuthController {
         .findOne(where.eq('email', email));
 
     if (user != null) {
-      final accountStatus = user['accountStatus'].toString();
+      final accountStatusValue = user['accountStatus'];
+      final accountStatus = _checkAccountStatus(accountStatusValue as int);
 
-      if (accountStatus == AccountStatus.suspended.name ||
-          accountStatus == AccountStatus.inactive.name) {
+      if (accountStatus == AccountStatus.suspended ||
+          accountStatus == AccountStatus.inactive) {
         return ApiResponse(
           success: false,
           message: ResponseMessages.suspendUser.message,
@@ -102,6 +102,14 @@ class AuthController {
         statusCode: HttpStatus.unauthorized, // Not Found
       );
     }
+  }
+
+  AccountStatus _checkAccountStatus(int accountStatusValue) {
+    final accountStatus = AccountStatus.values.firstWhere(
+      (status) => status.index == accountStatusValue,
+      orElse: () => AccountStatus.active,
+    );
+    return accountStatus;
   }
 
   Future<void> replaceTokenInDb(JwtModel jwt) async {

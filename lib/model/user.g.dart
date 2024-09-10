@@ -28,18 +28,17 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'surname': instance.surname,
       'email': instance.email,
       'password': instance.password,
-      'accountStatus': _$AccountStatusEnumMap[instance.accountStatus],
-      'accountRole': _$AccountRoleEnumMap[instance.accountRole],
+      'accountStatus': _$AccountStatusEnumMap[instance.accountStatus]!,
+      'accountRole': _$AccountRoleEnumMap[instance.accountRole]!,
     };
 
 const _$AccountStatusEnumMap = {
-  AccountStatus.active: 'active',
-  AccountStatus.inactive: 'inactive',
-  AccountStatus.suspended: 'suspended',
+  AccountStatus.active: 0,
+  AccountStatus.inactive: 1,
+  AccountStatus.suspended: 2,
 };
 
 const _$AccountRoleEnumMap = {
-  AccountRole.user: 'user',
-  AccountRole.admin: 'admin',
-  AccountRole.moderator: 'moderator',
+  AccountRole.user: 0,
+  AccountRole.admin: 1,
 };

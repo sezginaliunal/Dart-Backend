@@ -10,7 +10,7 @@ class UsersRoute {
     app.get(
       '/users/:id',
       userService.getUserById,
-      middleware: [middleware.authenticate],
+      // middleware: [middleware.authenticate],
     );
   }
 }

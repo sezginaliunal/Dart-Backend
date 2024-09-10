@@ -3,15 +3,19 @@ import 'package:json_annotation/json_annotation.dart';
 part 'user.g.dart';
 
 enum AccountStatus {
+  @JsonValue(0)
   active,
+  @JsonValue(1)
   inactive,
+  @JsonValue(2)
   suspended,
 }
 
 enum AccountRole {
+  @JsonValue(0)
   user,
+  @JsonValue(1)
   admin,
-  moderator,
 }
 
 @JsonSerializable()

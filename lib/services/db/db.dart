@@ -1,6 +1,6 @@
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
 import 'package:project_base/config/load_env.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 
 class MongoDatabase {
   factory MongoDatabase() => _instance;
@@ -37,7 +37,7 @@ class MongoDatabase {
   }
 
   // Return bool value for db status
-  Future<bool> isDbOpen() async {
+  bool isDbOpen() {
     return _db.isConnected;
   }
 }

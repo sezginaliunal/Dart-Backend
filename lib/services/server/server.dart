@@ -35,8 +35,8 @@ class ServerService {
     await IndexRoute.setupRoutes(app);
   }
 
-  FutureOr<dynamic> missingHandler(HttpRequest req, HttpResponse res) {
-    return JsonResponseHelper.sendJsonResponse(
+  FutureOr<dynamic> missingHandler(HttpRequest req, HttpResponse res) async {
+    return await JsonResponseHelper.sendJsonResponse(
       statusCode: HttpStatus.notFound,
       res,
       ApiResponse(
@@ -47,8 +47,8 @@ class ServerService {
     );
   }
 
-  FutureOr<dynamic> internalError(HttpRequest req, HttpResponse res) {
-    return JsonResponseHelper.sendJsonResponse(
+  FutureOr<dynamic> internalError(HttpRequest req, HttpResponse res) async {
+    return await JsonResponseHelper.sendJsonResponse(
       statusCode: HttpStatus.internalServerError,
       res,
       ApiResponse(
