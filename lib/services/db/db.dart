@@ -10,13 +10,16 @@ class MongoDatabase {
   }
   late Db _db;
   Db get db => _db;
+  bool get isOpen => _db.isConnected;
   static final MongoDatabase _instance = MongoDatabase._init();
   final _env = Env();
 
   // Connect to database
   Future<void> connectDb() async {
-    await db.open();
-    await autoMigrate();
+    if (!db.isConnected) {
+      await db.open();
+      await autoMigrate();
+    }
   }
 
   // Close to database
@@ -34,10 +37,5 @@ class MongoDatabase {
         }
       }
     }
-  }
-
-  // Return bool value for db status
-  bool isDbOpen() {
-    return _db.isConnected;
   }
 }

@@ -2,12 +2,9 @@ import 'dart:io';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
 import 'package:project_base/config/constants/response_messages.dart';
-import 'package:project_base/controllers/user_controller.dart';
 import 'package:project_base/model/api_response.dart';
-import 'package:project_base/model/jwt.dart';
 import 'package:project_base/model/user.dart';
 import 'package:project_base/services/db/db.dart';
-import 'package:project_base/services/features/jwt.dart';
 import 'package:project_base/utils/extensions/hash_string.dart';
 import 'package:project_base/utils/extensions/validators.dart';
 
@@ -110,50 +107,5 @@ class AuthController {
       orElse: () => AccountStatus.active,
     );
     return accountStatus;
-  }
-
-  Future<void> replaceTokenInDb(JwtModel jwt) async {
-    await _dbInstance.db
-        .collection(CollectionPath.token.rawValue)
-        .remove(where.eq('userId', jwt.userId));
-
-    await _dbInstance.db
-        .collection(CollectionPath.token.rawValue)
-        .insert(jwt.toJson());
-  }
-
-  Future<ApiResponse<void>> logout(String accessToken) async {
-    await _dbInstance.db
-        .collection(CollectionPath.token.rawValue)
-        .deleteOne(where.eq('accessToken', accessToken));
-    return ApiResponse(
-      message: ResponseMessages.successLogout.message,
-      statusCode: HttpStatus.ok,
-    );
-  }
-
-  Future<ApiResponse<void>> refreshToken(String userId) async {
-    final user = await UserController().getUserById(userId);
-
-    if (user.data != null) {
-      final jwt = await JwtService().createJwt(user.data!);
-      await _dbInstance.db
-          .collection(CollectionPath.token.rawValue)
-          .deleteMany(where.eq('userId', userId));
-
-      await _dbInstance.db
-          .collection(CollectionPath.token.rawValue)
-          .insert(jwt.toJson());
-      return ApiResponse(
-        message: ResponseMessages.updateToken.message,
-        statusCode: HttpStatus.ok,
-      );
-    } else {
-      return ApiResponse(
-        message: ResponseMessages.userNotFound.message,
-        statusCode: HttpStatus.notFound,
-        success: false,
-      );
-    }
   }
 }

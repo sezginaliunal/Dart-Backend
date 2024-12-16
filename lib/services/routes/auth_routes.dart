@@ -9,8 +9,6 @@ class AuthRoute {
     app
       ..post('/auth/register', authService.register)
       ..post('/auth/login', authService.login)
-      ..post('/auth/logout', authService.logout)
-      ..post('/auth/refresh_token', authService.refreshToken)
       ..post('/auth/reset_password', authService.resetPassword);
   }
 }

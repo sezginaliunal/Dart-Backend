@@ -9,6 +9,12 @@ enum AccountStatus {
   inactive,
   @JsonValue(2)
   suspended,
+  @JsonValue(3)
+  pending,
+  @JsonValue(4)
+  banned,
+  @JsonValue(5)
+  deleted,
 }
 
 enum AccountRole {
@@ -16,14 +22,15 @@ enum AccountRole {
   user,
   @JsonValue(1)
   admin,
+  @JsonValue(2)
+  guest,
 }
 
 @JsonSerializable()
 class User {
   User({
     required this.id,
-    required this.name,
-    required this.surname,
+    required this.username,
     required this.email,
     required this.password,
     this.pushNotificationId,
@@ -35,8 +42,7 @@ class User {
   @JsonKey(name: '_id')
   final String id;
   final String? pushNotificationId;
-  final String name;
-  final String surname;
+  final String username;
   final String email;
   String password;
   @JsonKey(defaultValue: AccountStatus.active)
