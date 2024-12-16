@@ -1,6 +1,7 @@
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
 import 'package:project_base/config/load_env.dart';
+import 'package:project_base/main.dart';
 
 class MongoDatabase {
   factory MongoDatabase() => _instance;
@@ -16,9 +17,14 @@ class MongoDatabase {
 
   // Connect to database
   Future<void> connectDb() async {
-    if (!db.isConnected) {
-      await db.open();
-      await autoMigrate();
+    try {
+      if (!db.isConnected) {
+        await db.open();
+        await autoMigrate();
+        logger.i('Db açıldı');
+      }
+    } catch (e) {
+      logger.e(e);
     }
   }
 
