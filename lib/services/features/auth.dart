@@ -1,11 +1,15 @@
 import 'dart:io';
 
 import 'package:alfred/alfred.dart';
+import 'package:project_base/config/constants/collections.dart';
 import 'package:project_base/config/constants/response_messages.dart';
+import 'package:project_base/controllers/auditlog_controller.dart';
 import 'package:project_base/controllers/auth.dart';
 import 'package:project_base/controllers/user_controller.dart';
 import 'package:project_base/model/api_response.dart';
+import 'package:project_base/model/audit_log.dart';
 import 'package:project_base/model/user.dart';
+import 'package:project_base/services/features/jwt.dart';
 import 'package:project_base/services/server/smtp.dart';
 import 'package:project_base/utils/helpers/json_helper.dart';
 import 'package:uuid/uuid.dart';
@@ -14,6 +18,7 @@ class AuthService {
   final AuthController authController = AuthController();
   final UserController userController = UserController();
   final StmpService smtpService = StmpService();
+  final JwtService jwtService = JwtService();
 
   Future<void> register(HttpRequest req, HttpResponse res) async {
     final body = await req.bodyAsJsonMap;
@@ -29,13 +34,47 @@ class AuthService {
         password: password,
         pushNotificationId: pushNotificationId,
       );
+
+      // Log kayıt işlemi
+      await AuditLogController().insertLog(
+        AuditLog(
+          collection: CollectionPath.users.name,
+          message: 'User registration attempt: $email',
+        ),
+      );
+
       final result = await authController.register(user);
+      if (result.success) {
+        await AuditLogController().insertLog(
+          AuditLog(
+            collection: CollectionPath.users.name,
+            message: 'User registered successfully: $email',
+          ),
+        );
+      } else {
+        await AuditLogController().insertLog(
+          AuditLog(
+            collection: CollectionPath.users.name,
+            message: 'User registration failed: $email',
+            level: LogLevel.error,
+          ),
+        );
+      }
+
       return JsonResponseHelper.sendJsonResponse(
         statusCode: result.statusCode,
         res,
         result,
       );
     } else {
+      await AuditLogController().insertLog(
+        AuditLog(
+          collection: CollectionPath.users.name,
+          message: 'Invalid registration request body.',
+          level: LogLevel.warning,
+        ),
+      );
+
       return JsonResponseHelper.sendJsonResponse(
         statusCode: HttpStatus.badRequest,
         res,
@@ -54,19 +93,43 @@ class AuthService {
       final email = body['email'].toString();
       final password = body['password'].toString();
 
-      final result = await authController.login(email, password);
+      // Log giriş işlemi
+      await AuditLogController().insertLog(
+        AuditLog(
+          collection: CollectionPath.users.name,
+          message: 'Login attempt: $email',
+        ),
+      );
 
+      final result = await authController.login(email, password);
       if (result.success) {
-        final isUserExist = await userController.isUserExist(email);
-        if (isUserExist.data != null) {
-          // JwtModel'i JSON formatında döndürme
-          return JsonResponseHelper.sendJsonResponse(
-            statusCode: result.statusCode,
-            res,
-            ApiResponse(message: ResponseMessages.successLogin.message),
-          );
-        }
+        final user = result.data;
+
+        final jwt = ApiResponse(data: await jwtService.createJwt(user!));
+        await authController.replaceTokenInDb(jwt.data!);
+        // Başarılı login logu
+        await AuditLogController().insertLog(
+          AuditLog(
+            collection: CollectionPath.users.name,
+            message: 'User logged in successfully: $email',
+          ),
+        );
+
+        return JsonResponseHelper.sendJsonResponse(
+          statusCode: result.statusCode,
+          res,
+          jwt,
+        );
       } else {
+        // Başarısız login logu
+        await AuditLogController().insertLog(
+          AuditLog(
+            collection: CollectionPath.users.name,
+            message: 'Login failed for user: $email',
+            level: LogLevel.warning,
+          ),
+        );
+
         return JsonResponseHelper.sendJsonResponse(
           statusCode: result.statusCode,
           res,
@@ -74,6 +137,14 @@ class AuthService {
         );
       }
     } else {
+      await AuditLogController().insertLog(
+        AuditLog(
+          collection: CollectionPath.users.name,
+          message: 'Invalid login request body.',
+          level: LogLevel.warning,
+        ),
+      );
+
       return JsonResponseHelper.sendJsonResponse(
         statusCode: HttpStatus.badRequest,
         res,
@@ -95,46 +166,6 @@ class AuthService {
     //     await userController.updateUser(
     //       user.data!.id,
     //       'password',
-    //       newPassword.toSha256(),
-    //     );
-
-    //     await smtpService.sendMessage(
-    //       user.data!.email,
-    //       newPassword,
-    //       '${user.data?.name} ${user.data?.surname}',
-    //     );
-
-    //     final result = ApiResponse<void>(
-    //       message: 'New password sent to your email',
-    //     );
-
-    //     return JsonResponseHelper.sendJsonResponse(
-    //       statusCode: result.statusCode,
-    //       res,
-    //       result,
-    //     );
-    //   } else {
-    //     final result = ApiResponse<void>(
-    //       success: false,
-    //       message: 'User not found',
-    //       statusCode: HttpStatus.notFound,
-    //     );
-    //     return JsonResponseHelper.sendJsonResponse(
-    //       statusCode: result.statusCode,
-    //       res,
-    //       result,
-    //     );
-    //   }
-    // } else {
-    //   final result = ApiResponse<void>(
-    //     success: false,
-    //     message: 'Invalid request',
-    //   );
-    //   return JsonResponseHelper.sendJsonResponse(
-    //     statusCode: result.statusCode,
-    //     res,
-    //     result,
-    //   );
-    // }
+    //       newPas
   }
 }

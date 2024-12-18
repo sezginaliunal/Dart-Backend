@@ -7,15 +7,13 @@ part of 'jwt.dart';
 // **************************************************************************
 
 JwtModel _$JwtModelFromJson(Map<String, dynamic> json) => JwtModel(
-      id: json['_id'] as String,
       accessToken: json['accessToken'] as String,
-      refreshToken: json['refreshToken'] as String,
       userId: json['userId'] as String,
+      id: json['_id'] as String?,
     );
 
 Map<String, dynamic> _$JwtModelToJson(JwtModel instance) => <String, dynamic>{
-      '_id': instance.id,
+      '_id': const Uuid().v4(),
       'accessToken': instance.accessToken,
-      'refreshToken': instance.refreshToken,
       'userId': instance.userId,
     };

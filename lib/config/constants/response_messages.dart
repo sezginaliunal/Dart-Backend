@@ -22,39 +22,41 @@ extension ResponseMessagesExtension on ResponseMessages {
   String get message {
     switch (this) {
       case ResponseMessages.invalidEmail:
-        return 'Geçersiz email formatı';
+        return 'Invalid email format';
       case ResponseMessages.invalidPassword:
-        return 'Şifre en az 8 karakter uzunluğunda ve bir harf ile bir rakam içermelidir';
+        return '''
+Password must be at least 8 characters
+        long and contain both a letter and a number''';
       case ResponseMessages.existUser:
-        return 'Bu emaile kayıtlı kullanıcı var';
+        return 'A user is already registered with this email';
       case ResponseMessages.successRegister:
-        return 'Kullanıcı kayıt oldu';
+        return 'User successfully registered';
       case ResponseMessages.suspendUser:
-        return 'Hesap şüpheli veya aktif değil';
+        return 'Account is suspicious or inactive';
       case ResponseMessages.wrongPassword:
-        return 'Şifre yanlış';
+        return 'Incorrect password';
       case ResponseMessages.userNotFound:
-        return 'Kullanıcı bulunamadı';
+        return 'User not found';
       case ResponseMessages.successLogin:
-        return 'Giriş başarılı';
+        return 'Login successful';
       case ResponseMessages.successLogout:
-        return 'Çıkış yapıldı';
+        return 'Logged out successfully';
       case ResponseMessages.updateToken:
-        return 'Token güncellendi';
+        return 'Token updated';
       case ResponseMessages.somethingError:
-        return 'Bir hata oluştu';
+        return 'An error occurred';
       case ResponseMessages.unauthorized:
-        return 'Yetkisiz işlem';
+        return 'Unauthorized action';
       case ResponseMessages.invalidHeader:
-        return 'Geçersiz header';
+        return 'Invalid header';
       case ResponseMessages.invalidToken:
-        return 'Geçersiz token';
+        return 'Invalid token';
       case ResponseMessages.invalidBody:
-        return 'Body boş olamaz';
+        return 'Body cannot be empty';
       case ResponseMessages.notFound:
-        return 'Bulunamadı';
+        return 'Not found';
       case ResponseMessages.internalError:
-        return 'Sunucu hatası';
+        return 'Server error';
     }
   }
 }

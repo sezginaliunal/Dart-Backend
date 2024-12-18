@@ -1,28 +1,20 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'user.g.dart';
 
 enum AccountStatus {
-  @JsonValue(0)
   active,
-  @JsonValue(1)
   inactive,
-  @JsonValue(2)
   suspended,
-  @JsonValue(3)
   pending,
-  @JsonValue(4)
   banned,
-  @JsonValue(5)
   deleted,
 }
 
 enum AccountRole {
-  @JsonValue(0)
   user,
-  @JsonValue(1)
   admin,
-  @JsonValue(2)
   guest,
 }
 
@@ -51,4 +43,12 @@ class User {
   final AccountRole accountRole;
 
   Map<String, dynamic> toJson() => _$UserToJson(this);
+
+  static AccountStatus checkAccountStatus(String accountStatusValue) {
+    final accountStatus = AccountStatus.values.firstWhere(
+      (status) => status.name == accountStatusValue,
+      orElse: () => AccountStatus.active,
+    );
+    return accountStatus;
+  }
 }
