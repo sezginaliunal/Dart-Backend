@@ -8,7 +8,7 @@ extension StringValidators on String {
 
   bool get isValidPassword {
     final strongPasswordRegex = RegExp(
-      r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&.,])[A-Za-z\d@$!%*?&.,]{8,}$',
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.,])[A-Za-z\d@$!%*?&.,]{8,}$',
     );
     return strongPasswordRegex.hasMatch(this);
   }

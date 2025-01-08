@@ -12,7 +12,6 @@ import 'package:project_base/model/user.dart';
 import 'package:project_base/services/features/jwt.dart';
 import 'package:project_base/services/server/smtp.dart';
 import 'package:project_base/utils/helpers/json_helper.dart';
-import 'package:uuid/uuid.dart';
 
 class AuthService {
   final AuthController authController = AuthController();
@@ -28,7 +27,6 @@ class AuthService {
       final password = body['password'].toString();
       final pushNotificationId = body['pushNotificationId'].toString();
       final user = User(
-        id: const Uuid().v4(),
         username: username,
         email: email,
         password: password,
@@ -38,6 +36,7 @@ class AuthService {
       // Log kayıt işlemi
       await AuditLogController().insertLog(
         AuditLog(
+          createdBy: email,
           collection: CollectionPath.users.name,
           message: 'User registration attempt: $email',
         ),
@@ -47,6 +46,7 @@ class AuthService {
       if (result.success) {
         await AuditLogController().insertLog(
           AuditLog(
+            createdBy: email,
             collection: CollectionPath.users.name,
             message: 'User registered successfully: $email',
           ),
@@ -54,6 +54,7 @@ class AuthService {
       } else {
         await AuditLogController().insertLog(
           AuditLog(
+            createdBy: email,
             collection: CollectionPath.users.name,
             message: 'User registration failed: $email',
             level: LogLevel.error,
@@ -96,6 +97,7 @@ class AuthService {
       // Log giriş işlemi
       await AuditLogController().insertLog(
         AuditLog(
+          createdBy: email,
           collection: CollectionPath.users.name,
           message: 'Login attempt: $email',
         ),
@@ -110,6 +112,7 @@ class AuthService {
         // Başarılı login logu
         await AuditLogController().insertLog(
           AuditLog(
+            createdBy: email,
             collection: CollectionPath.users.name,
             message: 'User logged in successfully: $email',
           ),
@@ -124,6 +127,7 @@ class AuthService {
         // Başarısız login logu
         await AuditLogController().insertLog(
           AuditLog(
+            createdBy: email,
             collection: CollectionPath.users.name,
             message: 'Login failed for user: $email',
             level: LogLevel.warning,

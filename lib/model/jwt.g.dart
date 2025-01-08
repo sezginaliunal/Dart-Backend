@@ -13,7 +13,7 @@ JwtModel _$JwtModelFromJson(Map<String, dynamic> json) => JwtModel(
     );
 
 Map<String, dynamic> _$JwtModelToJson(JwtModel instance) => <String, dynamic>{
-      '_id': const Uuid().v4(),
+      '_id': instance.id,
       'accessToken': instance.accessToken,
       'userId': instance.userId,
     };

@@ -23,6 +23,7 @@ class JwtService {
     // Log JWT oluşturma girişimi
     await AuditLogController().insertLog(
       AuditLog(
+        createdBy: user.email,
         collection: _collectionPath,
         message: 'Creating JWT for user: ${user.id}',
       ),
@@ -52,6 +53,7 @@ class JwtService {
     // Log JWT oluşturma başarı durumu
     await AuditLogController().insertLog(
       AuditLog(
+        createdBy: user.email,
         collection: _collectionPath,
         message: 'JWT created successfully for user: ${user.id}',
       ),
@@ -64,6 +66,7 @@ class JwtService {
     // Log JWT kontrolü girişimi
     await AuditLogController().insertLog(
       AuditLog(
+        createdBy: userId,
         collection: _collectionPath,
         message: 'Checking JWT for user: $userId',
       ),
@@ -81,6 +84,7 @@ class JwtService {
           // Log: Kullanıcı ID eşleşmiyor
           await AuditLogController().insertLog(
             AuditLog(
+              createdBy: userId,
               collection: _collectionPath,
               message:
                   'JWT validation failed: User ID mismatch for user: $userId',
@@ -99,6 +103,7 @@ class JwtService {
         // Log: Başarılı doğrulama
         await AuditLogController().insertLog(
           AuditLog(
+            createdBy: userId,
             collection: _collectionPath,
             message: 'JWT validated successfully for user: $userId',
           ),
@@ -109,6 +114,7 @@ class JwtService {
       // Log: JWT bulunamadı
       await AuditLogController().insertLog(
         AuditLog(
+          createdBy: userId,
           collection: _collectionPath,
           message: 'JWT not found for user: $userId',
           level: LogLevel.warning,
@@ -119,6 +125,7 @@ class JwtService {
       // Log: JWT süresi dolmuş
       await AuditLogController().insertLog(
         AuditLog(
+          createdBy: userId,
           collection: _collectionPath,
           message: 'JWT expired for user: $userId',
           level: LogLevel.warning,
@@ -129,6 +136,7 @@ class JwtService {
       // Log: JWT hatası
       await AuditLogController().insertLog(
         AuditLog(
+          createdBy: userId,
           collection: _collectionPath,
           message: 'JWT validation error for user: $userId',
           level: LogLevel.error,

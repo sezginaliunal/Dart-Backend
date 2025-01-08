@@ -13,11 +13,12 @@ enum LogLevel {
 class AuditLog {
   AuditLog({
     required this.collection,
-    this.id,
     this.message,
     String? timestamp,
     this.level = LogLevel.info,
-  }) : timestamp = timestamp ?? DateTime.now().toIso8601String();
+    this.createdBy, // The new optional field
+  })  : timestamp = timestamp ?? DateTime.now().toIso8601String(),
+        id = const Uuid().v4();
 
   factory AuditLog.fromJson(Map<String, dynamic> json) =>
       _$AuditLogFromJson(json);
@@ -36,6 +37,9 @@ class AuditLog {
 
   @JsonKey(name: 'collection')
   String collection; // collection artık String türünde
+
+  @JsonKey(name: 'createdBy') // Add this annotation for createdBy field
+  String? createdBy; // This is the new nullable field
 
   Map<String, dynamic> toJson() => _$AuditLogToJson(this);
 

@@ -74,15 +74,15 @@ class MongoDatabase {
         for (final collectionName in CollectionPath.values) {
           if (!collectionInfo!.contains(collectionName.name)) {
             await db.createCollection(collectionName.name);
-            await AuditLogController().insertLog(
-              AuditLog(
-                collection: 'Database',
-                message: 'Created collection: ${collectionName.name}',
-              ),
-            );
           }
         }
       }
+      await AuditLogController().insertLog(
+        AuditLog(
+          collection: 'Database',
+          message: 'Created collections',
+        ),
+      );
     } catch (e) {
       await AuditLogController().insertLog(
         AuditLog(
@@ -126,12 +126,13 @@ class MongoDatabase {
   // Pagination method
   Future<ApiResponse<List<T>>> paginateData<T>(
     String collectionName, {
-    required int page,
-    required int limit,
-    required String sort,
-    required bool descending,
     required T Function(Map<String, dynamic>)
-        fromJson, // JSON'dan T'ye dönüşüm fonksiyonu
+        fromJson, // Gerekli parametre, int page = 1, // Varsayılan değer
+
+    int page = 1,
+    int limit = 10, // Varsayılan değer
+    String sort = '_id', // Varsayılan sıralama alanı
+    bool descending = false, // Varsayılan sıralama yönü
   }) async {
     return handleDatabaseOperation(() async {
       final collection = db.collection(collectionName);
@@ -150,6 +151,7 @@ class MongoDatabase {
 
       // JSON'dan model nesnesine dönüşüm
       final dataList = cursor.map(fromJson).toList();
+
       return dataList;
     });
   }

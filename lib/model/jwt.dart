@@ -8,8 +8,8 @@ class JwtModel {
   JwtModel({
     required this.accessToken,
     required this.userId,
-    this.id,
-  });
+    String? id,
+  }) : id = id ?? const Uuid().v4();
 
   factory JwtModel.fromJson(Map<String, dynamic> json) =>
       _$JwtModelFromJson(json);
