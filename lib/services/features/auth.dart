@@ -1,17 +1,17 @@
 import 'dart:io';
 
 import 'package:alfred/alfred.dart';
-import 'package:project_base/config/constants/collections.dart';
-import 'package:project_base/config/constants/response_messages.dart';
-import 'package:project_base/controllers/auditlog_controller.dart';
-import 'package:project_base/controllers/auth.dart';
-import 'package:project_base/controllers/user_controller.dart';
-import 'package:project_base/model/api_response.dart';
-import 'package:project_base/model/audit_log.dart';
-import 'package:project_base/model/user.dart';
-import 'package:project_base/services/features/jwt.dart';
-import 'package:project_base/services/server/smtp.dart';
-import 'package:project_base/utils/helpers/json_helper.dart';
+import 'package:hali_saha/config/constants/collections.dart';
+import 'package:hali_saha/config/constants/response_messages.dart';
+import 'package:hali_saha/controllers/auditlog_controller.dart';
+import 'package:hali_saha/controllers/auth.dart';
+import 'package:hali_saha/controllers/user_controller.dart';
+import 'package:hali_saha/model/api_response.dart';
+import 'package:hali_saha/model/audit_log.dart';
+import 'package:hali_saha/model/user.dart';
+import 'package:hali_saha/services/features/jwt.dart';
+import 'package:hali_saha/services/server/smtp.dart';
+import 'package:hali_saha/utils/helpers/json_helper.dart';
 
 class AuthService {
   final AuthController authController = AuthController();

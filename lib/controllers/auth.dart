@@ -1,13 +1,14 @@
 import 'dart:io';
+import 'package:hali_saha/utils/enums/account.dart';
 import 'package:mongo_dart/mongo_dart.dart';
-import 'package:project_base/config/constants/collections.dart';
-import 'package:project_base/config/constants/response_messages.dart';
-import 'package:project_base/core/controller.dart';
-import 'package:project_base/model/api_response.dart';
-import 'package:project_base/model/jwt.dart';
-import 'package:project_base/model/user.dart';
-import 'package:project_base/utils/extensions/hash_string.dart';
-import 'package:project_base/utils/extensions/validators.dart';
+import 'package:hali_saha/config/constants/collections.dart';
+import 'package:hali_saha/config/constants/response_messages.dart';
+import 'package:hali_saha/core/controller.dart';
+import 'package:hali_saha/model/api_response.dart';
+import 'package:hali_saha/model/jwt.dart';
+import 'package:hali_saha/model/user.dart';
+import 'package:hali_saha/utils/extensions/hash_string.dart';
+import 'package:hali_saha/utils/extensions/validators.dart';
 
 class AuthController extends MyController {
   AuthController() {
@@ -77,7 +78,7 @@ class AuthController extends MyController {
 
     if (user != null) {
       final accountStatusValue = user['accountStatus'];
-      final accountStatus = User.checkAccountStatus(accountStatusValue as int);
+      final accountStatus = checkAccountStatus(accountStatusValue as int);
 
       if (accountStatus != AccountStatus.active) {
         return ApiResponse(

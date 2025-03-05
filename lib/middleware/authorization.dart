@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:project_base/config/constants/response_messages.dart';
-import 'package:project_base/controllers/user_controller.dart';
-import 'package:project_base/model/api_response.dart';
-import 'package:project_base/model/user.dart';
-import 'package:project_base/services/features/jwt.dart';
-import 'package:project_base/utils/helpers/json_helper.dart';
+import 'package:hali_saha/config/constants/response_messages.dart';
+import 'package:hali_saha/controllers/user_controller.dart';
+import 'package:hali_saha/model/api_response.dart';
+import 'package:hali_saha/services/features/jwt.dart';
+import 'package:hali_saha/utils/enums/account.dart';
+import 'package:hali_saha/utils/helpers/json_helper.dart';
 
 class Middleware {
   final JwtService jwtService = JwtService();
@@ -104,6 +104,72 @@ class Middleware {
         success: false,
         message: ResponseMessages.invalidToken.message,
         statusCode: HttpStatus.unauthorized,
+      );
+
+      return JsonResponseHelper.sendJsonResponse(
+        res,
+        result,
+        statusCode: result.statusCode,
+      );
+    }
+  }
+
+  FutureOr<void> isPrivilegedUser(HttpRequest req, HttpResponse res) async {
+    final userId = req.headers.value('userId');
+
+    if (userId == null) {
+      final result = ApiResponse<void>(
+        success: false,
+        message: ResponseMessages.unauthorized.message,
+        statusCode: HttpStatus.unauthorized,
+      );
+
+      return JsonResponseHelper.sendJsonResponse(
+        res,
+        result,
+        statusCode: result.statusCode,
+      );
+    }
+
+    final isUserExist = await userController.isUserExist(userId);
+    if (!isUserExist.success) {
+      final result = ApiResponse<void>(
+        success: false,
+        message: ResponseMessages.userNotFound.message,
+        statusCode: HttpStatus.notFound,
+      );
+
+      return JsonResponseHelper.sendJsonResponse(
+        res,
+        result,
+        statusCode: result.statusCode,
+      );
+    }
+
+    final parseUser = await userController.getUserById(userId);
+    if (parseUser.success) {
+      // Enum değerini int üzerinden kontrol et
+      final userRole = checkAccountRole(parseUser.data?.accountRole ?? 0);
+      final isPrivileged = userRole.isPrivileged;
+
+      if (!isPrivileged) {
+        final result = ApiResponse<void>(
+          success: false,
+          message: ResponseMessages.unauthorized.message,
+          statusCode: HttpStatus.unauthorized,
+        );
+
+        return JsonResponseHelper.sendJsonResponse(
+          res,
+          result,
+          statusCode: result.statusCode,
+        );
+      }
+    } else {
+      final result = ApiResponse<void>(
+        success: false,
+        message: ResponseMessages.userNotFound.message,
+        statusCode: HttpStatus.notFound,
       );
 
       return JsonResponseHelper.sendJsonResponse(

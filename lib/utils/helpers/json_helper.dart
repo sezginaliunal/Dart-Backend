@@ -1,5 +1,5 @@
 import 'package:alfred/alfred.dart';
-import 'package:project_base/model/api_response.dart';
+import 'package:hali_saha/model/api_response.dart';
 
 class JsonResponseHelper {
   static Future<void> sendJsonResponse(

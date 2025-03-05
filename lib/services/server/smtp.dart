@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
-import 'package:project_base/config/load_env.dart';
+import 'package:hali_saha/config/load_env.dart';
 
 class StmpService {
   factory StmpService() => _instance;

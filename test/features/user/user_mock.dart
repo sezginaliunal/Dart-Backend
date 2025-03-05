@@ -1,4 +1,4 @@
-import 'package:project_base/model/user.dart';
+import 'package:hali_saha/model/user.dart';
 
 final class UserMock {
   User get onlyOneUser => User(

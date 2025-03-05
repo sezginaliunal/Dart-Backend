@@ -10,6 +10,7 @@
 analyzer:
   errors:
     constant_identifier_names: ignore
+    directives_ordering: ignore
     inference_failure_on_function_invocation: ignore
     must_be_immutable: ignore
     no_default_cases: ignore
