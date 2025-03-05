@@ -1,6 +1,6 @@
-import 'package:hali_saha/config/constants/response_messages.dart';
-import 'package:hali_saha/controllers/auth.dart';
-import 'package:hali_saha/services/db/db.dart';
+import 'package:project_base/config/constants/response_messages.dart';
+import 'package:project_base/controllers/auth.dart';
+import 'package:project_base/services/db/db.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
@@ -26,8 +26,10 @@ void main() {
   });
   test('Login', () async {
     await dbService.connectDb();
-    final result =
-        await authController.login('email@hotmail.com', '12345678Aa.');
+    final result = await authController.login(
+      userMock.onlyOneUser.email,
+      userMock.onlyOneUser.password,
+    );
     if (result.message == ResponseMessages.invalidEmail.message) {
       expect(result.success, false);
     } else if (result.message == ResponseMessages.invalidPassword.message) {

@@ -1,5 +1,5 @@
 import 'package:alfred/alfred.dart';
-import 'package:hali_saha/services/features/auth.dart';
+import 'package:project_base/services/features/auth.dart';
 // Assuming this is where your middleware is defined
 
 class AuthRoute {

@@ -1,6 +1,6 @@
 import 'package:alfred/alfred.dart';
-import 'package:hali_saha/services/routes/auth_routes.dart';
-import 'package:hali_saha/services/routes/users.routes.dart';
+import 'package:project_base/services/routes/auth_routes.dart';
+import 'package:project_base/services/routes/users.routes.dart';
 
 class IndexRoute {
   static Future<void> setupRoutes(Alfred app) async {

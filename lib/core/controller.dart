@@ -1,5 +1,5 @@
-import 'package:hali_saha/config/constants/collections.dart';
-import 'package:hali_saha/services/db/db.dart';
+import 'package:project_base/config/constants/collections.dart';
+import 'package:project_base/services/db/db.dart';
 
 abstract class MyController {
   final MongoDatabase db = MongoDatabase();

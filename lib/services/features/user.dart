@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:alfred/alfred.dart';
-import 'package:hali_saha/config/constants/response_messages.dart';
-import 'package:hali_saha/controllers/user_controller.dart';
-import 'package:hali_saha/model/api_response.dart';
-import 'package:hali_saha/utils/helpers/json_helper.dart';
+import 'package:project_base/config/constants/response_messages.dart';
+import 'package:project_base/controllers/user_controller.dart';
+import 'package:project_base/model/api_response.dart';
+import 'package:project_base/utils/helpers/json_helper.dart';
 
 class UserService {
   final UserController userController = UserController();

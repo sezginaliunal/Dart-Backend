@@ -1,9 +1,8 @@
 import 'dart:developer';
 
-import 'package:hali_saha/controllers/user_controller.dart';
-import 'package:hali_saha/model/user.dart';
-import 'package:hali_saha/services/db/db.dart';
-import 'package:hali_saha/utils/enums/account.dart';
+import 'package:project_base/controllers/user_controller.dart';
+import 'package:project_base/services/db/db.dart';
+import 'package:project_base/utils/enums/account.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
@@ -35,6 +34,6 @@ void main() {
     );
     final userRole = checkAccountRole(result.data!.accountRole);
 
-    expect(userRole.isPrivileged, true);
+    expect(userRole.isAdmin, true);
   });
 }

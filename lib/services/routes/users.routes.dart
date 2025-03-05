@@ -1,6 +1,6 @@
 import 'package:alfred/alfred.dart';
-import 'package:hali_saha/middleware/authorization.dart';
-import 'package:hali_saha/services/features/user.dart';
+import 'package:project_base/middleware/authorization.dart';
+import 'package:project_base/services/features/user.dart';
 
 class UsersRoute {
   final UserService userService = UserService();

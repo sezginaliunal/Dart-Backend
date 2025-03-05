@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:hali_saha/config/constants/response_messages.dart';
-import 'package:hali_saha/controllers/user_controller.dart';
-import 'package:hali_saha/model/api_response.dart';
-import 'package:hali_saha/services/features/jwt.dart';
-import 'package:hali_saha/utils/enums/account.dart';
-import 'package:hali_saha/utils/helpers/json_helper.dart';
+import 'package:project_base/config/constants/response_messages.dart';
+import 'package:project_base/controllers/user_controller.dart';
+import 'package:project_base/model/api_response.dart';
+import 'package:project_base/services/features/jwt.dart';
+import 'package:project_base/utils/enums/account.dart';
+import 'package:project_base/utils/helpers/json_helper.dart';
 
 class Middleware {
   final JwtService jwtService = JwtService();
@@ -45,7 +45,8 @@ class Middleware {
 
     final parseUser = await userController.getUserById(userId);
     if (parseUser.success) {
-      final isAdmin = parseUser.data?.accountRole == AccountRole.admin;
+      final userRole = checkAccountRole(parseUser.data?.accountRole ?? 0);
+      final isAdmin = userRole.isAdmin;
       if (!isAdmin) {
         final result = ApiResponse<void>(
           success: false,

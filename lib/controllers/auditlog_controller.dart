@@ -1,7 +1,7 @@
-import 'package:hali_saha/config/constants/collections.dart';
-import 'package:hali_saha/core/controller.dart';
-import 'package:hali_saha/model/api_response.dart';
-import 'package:hali_saha/model/audit_log.dart';
+import 'package:project_base/config/constants/collections.dart';
+import 'package:project_base/core/controller.dart';
+import 'package:project_base/model/api_response.dart';
+import 'package:project_base/model/audit_log.dart';
 
 class AuditLogController extends MyController {
   AuditLogController() {

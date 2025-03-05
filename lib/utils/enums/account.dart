@@ -27,6 +27,7 @@ enum AccountRole {
       this == AccountRole.owner ||
       this == AccountRole.supervisor ||
       this == AccountRole.admin;
+  bool get isAdmin => this == AccountRole.admin;
 }
 
 AccountStatus checkAccountStatus(int accountStatusValue) {

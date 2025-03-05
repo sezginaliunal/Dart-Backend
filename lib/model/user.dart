@@ -1,6 +1,5 @@
 // ignore_for_file: sort_constructors_first
 
-import 'package:hali_saha/utils/enums/account.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
