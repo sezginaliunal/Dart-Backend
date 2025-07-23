@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:alfred/alfred.dart';
 import 'package:project_base/config/constants/response_messages.dart';
 import 'package:project_base/config/load_env.dart';
+import 'package:project_base/controllers/file_upload.dart';
 import 'package:project_base/model/api_response.dart';
 import 'package:project_base/services/routes/index.dart';
 import 'package:project_base/utils/helpers/json_helper.dart';
@@ -13,12 +14,9 @@ class ServerService {
 
   ServerService._init() {
     _env = Env();
-    _app = Alfred(
-      onInternalError: internalError,
-      onNotFound: missingHandler,
-    );
+    _app = Alfred(onInternalError: internalError, onNotFound: missingHandler);
 
-    // _setupFileUploadRoutes();
+    _setupFileUploadRoutes();
 
     _setupRoutes();
   }
@@ -57,5 +55,9 @@ class ServerService {
         statusCode: HttpStatus.internalServerError,
       ),
     );
+  }
+
+  void _setupFileUploadRoutes() {
+    app.get('/files/*', (req, res) => FileUploadController().uploadDirectory);
   }
 }

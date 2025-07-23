@@ -12,8 +12,31 @@ class UserController extends MyController {
   UserController() {
     collectionName = CollectionPath.users;
   }
+  Future<ApiResponse<User?>> isUserExistByEmail(String email) async {
+    try {
+      final result = await db
+          .getCollection(collectionName.name)
+          .findOne(where.eq('email', email));
+      if (result != null) {
+        final user = User.fromJson(result);
 
-  // Kullanıcıyı e-posta ile kontrol etme
+        return ApiResponse(data: user);
+      } else {
+        return ApiResponse(
+          success: false,
+          message: ResponseMessages.userNotFound.message,
+          statusCode: HttpStatus.notFound,
+        );
+      }
+    } on Exception catch (_) {
+      return ApiResponse(
+        success: false,
+        message: ResponseMessages.somethingError.message,
+        statusCode: HttpStatus.internalServerError,
+      );
+    }
+  }
+
   Future<ApiResponse<User?>> isUserExist(String id) async {
     try {
       final result = await db
@@ -30,7 +53,7 @@ class UserController extends MyController {
           statusCode: HttpStatus.notFound,
         );
       }
-    } catch (e) {
+    } on Exception catch (_) {
       return ApiResponse(
         success: false,
         message: ResponseMessages.somethingError.message,
@@ -128,8 +151,7 @@ class UserController extends MyController {
 
   Future<ApiResponse<List<User>>> getUsers(
     int page,
-    int limit,
-    String sort, {
+    int limit, {
     required bool descending,
   }) async {
     try {
@@ -137,13 +159,12 @@ class UserController extends MyController {
         collectionName.name,
         page: page,
         limit: limit,
-        sort: sort,
         descending: descending,
         fromJson: User.fromJson,
       );
 
       return result;
-    } catch (e) {
+    } on Exception catch (_) {
       return ApiResponse(
         success: false,
         message: ResponseMessages.somethingError.message,

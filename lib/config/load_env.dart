@@ -12,6 +12,8 @@ class EnvConfig {
     required this.jwtRefreshTokenExpirationSeconds,
     required this.smtpMail,
     required this.smtpPassword,
+    required this.oneSignalAppId,
+    required this.oneSignalRestApiKey,
   });
   final String host;
   final String db;
@@ -23,6 +25,8 @@ class EnvConfig {
   final String jwtRefreshTokenExpirationSeconds;
   final String smtpMail;
   final String smtpPassword;
+  final String oneSignalAppId;
+  final String oneSignalRestApiKey;
 }
 
 class Env {
@@ -43,6 +47,8 @@ class Env {
           env['JWT_REFRESH_TOKEN_EXPIRATION_SECONDS'].toString(),
       smtpMail: env['SMTP_MAIL'].toString(),
       smtpPassword: env['SMTP_PASSWORD'].toString(),
+      oneSignalAppId: env['ONESIGNAL_APP_ID'].toString(),
+      oneSignalRestApiKey: env['ONESIGNAL_REST_API_KEY'].toString(),
     );
   }
   late DotEnv _env;

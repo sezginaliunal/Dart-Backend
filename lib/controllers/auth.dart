@@ -32,9 +32,9 @@ class AuthController extends MyController {
       );
     }
 
-    final isUserExist = await db
-        .getCollection(collectionName.name)
-        .findOne(where.eq('email', user.email));
+    final isUserExist = await db.getCollection(collectionName.name).findOne(
+          where.eq('email', user.email),
+        );
 
     if (isUserExist != null) {
       return ApiResponse<User>(
@@ -52,10 +52,10 @@ class AuthController extends MyController {
           message: ResponseMessages.successRegister.message,
           statusCode: HttpStatus.created,
         );
-      } catch (e) {
+      } on Exception catch (_) {
         return ApiResponse<User>(
           success: false,
-          message: 'Database error: $e',
+          message: ResponseMessages.internalError.message,
           statusCode: HttpStatus.internalServerError,
         );
       }
@@ -81,9 +81,16 @@ class AuthController extends MyController {
       final accountStatus = checkAccountStatus(accountStatusValue as int);
 
       if (accountStatus != AccountStatus.active) {
+        final message = {
+          AccountStatus.banned: ResponseMessages.accountBanned.message,
+          AccountStatus.suspended: ResponseMessages.accountSuspended.message,
+          AccountStatus.deleted: ResponseMessages.accountInactive.message,
+          AccountStatus.inactive: ResponseMessages.accountInactive.message,
+        }[accountStatus];
+
         return ApiResponse(
           success: false,
-          message: ResponseMessages.unauthorized.message,
+          message: message,
           statusCode: HttpStatus.badRequest,
         );
       }
@@ -108,7 +115,7 @@ class AuthController extends MyController {
       return ApiResponse(
         success: false,
         message: ResponseMessages.userNotFound.message,
-        statusCode: HttpStatus.unauthorized, // Not Found
+        statusCode: HttpStatus.badRequest, // Not Found
       );
     }
   }

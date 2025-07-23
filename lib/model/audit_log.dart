@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:uuid/uuid.dart';
+
 part 'audit_log.g.dart';
 
 enum LogLevel {
@@ -12,42 +12,39 @@ enum LogLevel {
 @JsonSerializable()
 class AuditLog {
   AuditLog({
+    required this.id,
     required this.collection,
-    this.message,
-    String? timestamp,
+    required this.message,
+    required this.createdAt,
     this.level = LogLevel.info,
-    this.createdBy, // The new optional field
-  })  : timestamp = timestamp ?? DateTime.now().toIso8601String(),
-        id = const Uuid().v4();
+    this.createdBy,
+  });
 
   factory AuditLog.fromJson(Map<String, dynamic> json) =>
       _$AuditLogFromJson(json);
 
   @JsonKey(name: '_id')
-  String? id;
+  final String id;
 
   @JsonKey(name: 'message')
-  String? message;
+  final String message;
 
-  @JsonKey(name: 'timestamp')
-  String timestamp;
+  @JsonKey(name: 'createdAt')
+  final DateTime createdAt;
 
   @JsonKey(name: 'level', fromJson: _logLevelFromJson, toJson: _logLevelToJson)
-  LogLevel level;
+  final LogLevel level;
 
   @JsonKey(name: 'collection')
-  String collection; // collection artık String türünde
+  final String collection;
 
-  @JsonKey(name: 'createdBy') // Add this annotation for createdBy field
-  String? createdBy; // This is the new nullable field
+  @JsonKey(name: 'createdBy')
+  final String? createdBy;
 
   Map<String, dynamic> toJson() => _$AuditLogToJson(this);
 
-  // Custom methods to handle LogLevel serialization
   static LogLevel _logLevelFromJson(String level) => LogLevel.values
       .firstWhere((e) => e.name == level, orElse: () => LogLevel.info);
 
   static String _logLevelToJson(LogLevel level) => level.name;
-
-  // Collection serileştirme işlemleri artık String olarak yapılıyor
 }

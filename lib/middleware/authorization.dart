@@ -9,7 +9,7 @@ import 'package:project_base/utils/helpers/json_helper.dart';
 
 class Middleware {
   final JwtService jwtService = JwtService();
-  final UserController userController = UserController();
+  final userController = UserController();
   // Admin olup olmadığını kontrol eden fonksiyon
   FutureOr<void> isAdmin(HttpRequest req, HttpResponse res) async {
     final userId = req.headers.value('userId');
@@ -79,7 +79,6 @@ class Middleware {
   FutureOr<void> authenticate(HttpRequest req, HttpResponse res) async {
     final authHeader = req.headers.value('Authorization');
     final userId = req.headers.value('userId');
-
     if (authHeader == null ||
         !authHeader.startsWith('Bearer ') ||
         userId == null) {
@@ -97,7 +96,7 @@ class Middleware {
     }
 
     final token = authHeader.substring(7); // 'Bearer ' kısmını çıkart
-
+//Token check
     final isValid = await jwtService.checkJwt(token, userId);
 
     if (!isValid) {
@@ -113,11 +112,25 @@ class Middleware {
         statusCode: result.statusCode,
       );
     }
+    final user = await userController.isUserExist(userId);
+    if (user.data?.accountStatus != AccountStatus.active.value) {
+      final result = ApiResponse<void>(
+        success: false,
+        message: ResponseMessages.unauthorized.message,
+        statusCode: HttpStatus.unauthorized,
+      );
+
+      return JsonResponseHelper.sendJsonResponse(
+        res,
+        result,
+        statusCode: result.statusCode,
+      );
+    }
   }
 
   FutureOr<void> isPrivilegedUser(HttpRequest req, HttpResponse res) async {
     final userId = req.headers.value('userId');
-
+//Null mı
     if (userId == null) {
       final result = ApiResponse<void>(
         success: false,
@@ -131,7 +144,7 @@ class Middleware {
         statusCode: result.statusCode,
       );
     }
-
+//Kullanıcı Var mı
     final isUserExist = await userController.isUserExist(userId);
     if (!isUserExist.success) {
       final result = ApiResponse<void>(

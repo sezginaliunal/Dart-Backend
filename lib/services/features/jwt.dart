@@ -23,6 +23,8 @@ class JwtService {
     // Log JWT oluşturma girişimi
     await AuditLogController().insertLog(
       AuditLog(
+        id: await _db.getNextStringSequenceId(CollectionPath.audit_log.name),
+        createdAt: DateTime.now(),
         createdBy: user.email,
         collection: _collectionPath,
         message: 'Creating JWT for user: ${user.id}',
@@ -37,10 +39,7 @@ class JwtService {
           int.parse(_env.envConfig.jwtAccessTokenExpirationSeconds),
     };
 
-    final jwtAccess = JWT(
-      payloadAccessToken,
-      issuer: _env.envConfig.jwtIssuer,
-    );
+    final jwtAccess = JWT(payloadAccessToken, issuer: _env.envConfig.jwtIssuer);
 
     final accessSecretKey = SecretKey(_env.envConfig.jwtAccessSecretKey);
     final accessToken = jwtAccess.sign(accessSecretKey);
@@ -48,11 +47,14 @@ class JwtService {
     final jwtModel = JwtModel(
       accessToken: accessToken,
       userId: user.id,
+      id: await _db.getNextStringSequenceId(CollectionPath.token.name),
     );
 
     // Log JWT oluşturma başarı durumu
     await AuditLogController().insertLog(
       AuditLog(
+        id: await _db.getNextStringSequenceId(CollectionPath.audit_log.name),
+        createdAt: DateTime.now(),
         createdBy: user.email,
         collection: _collectionPath,
         message: 'JWT created successfully for user: ${user.id}',
@@ -63,84 +65,84 @@ class JwtService {
   }
 
   Future<bool> checkJwt(String token, String userId) async {
-    // Log JWT kontrolü girişimi
-    await AuditLogController().insertLog(
-      AuditLog(
-        createdBy: userId,
-        collection: _collectionPath,
-        message: 'Checking JWT for user: $userId',
-      ),
-    );
+    final now = DateTime.now();
+
+    Future<void> log(String message, LogLevel level) async {
+      await AuditLogController().insertLog(
+        AuditLog(
+          id: await _db.getNextStringSequenceId(CollectionPath.audit_log.name),
+          createdAt: now,
+          createdBy: userId,
+          collection: _collectionPath,
+          message: message,
+          level: level,
+        ),
+      );
+    }
+
+    await log('Checking JWT for user: $userId', LogLevel.info);
+
+    if (token.trim().isEmpty) {
+      await log(
+        'JWT is empty or malformed for user: $userId',
+        LogLevel.warning,
+      );
+      return false;
+    }
 
     try {
-      final isTokenExist = await _db.db
-          .collection(CollectionPath.token.name)
+      final tokenData = await _db.db
+          .collection(_collectionPath)
           .findOne(where.eq('accessToken', token));
 
-      if (isTokenExist != null) {
-        final parsedJwt = JwtModel.fromJson(isTokenExist);
-
-        if (parsedJwt.userId != userId) {
-          // Log: Kullanıcı ID eşleşmiyor
-          await AuditLogController().insertLog(
-            AuditLog(
-              createdBy: userId,
-              collection: _collectionPath,
-              message:
-                  'JWT validation failed: User ID mismatch for user: $userId',
-              level: LogLevel.warning,
-            ),
-          );
-          return false;
-        }
-
-        // JWT doğrulama
-        JWT.verify(
-          parsedJwt.accessToken,
-          SecretKey(_env.envConfig.jwtAccessSecretKey),
+      if (tokenData == null) {
+        await log(
+          'JWT not found in database for user: $userId',
+          LogLevel.warning,
         );
-
-        // Log: Başarılı doğrulama
-        await AuditLogController().insertLog(
-          AuditLog(
-            createdBy: userId,
-            collection: _collectionPath,
-            message: 'JWT validated successfully for user: $userId',
-          ),
-        );
-        return true;
+        return false;
       }
 
-      // Log: JWT bulunamadı
-      await AuditLogController().insertLog(
-        AuditLog(
-          createdBy: userId,
-          collection: _collectionPath,
-          message: 'JWT not found for user: $userId',
-          level: LogLevel.warning,
-        ),
+      final parsedJwt = JwtModel.fromJson(tokenData);
+
+      if (parsedJwt.userId != userId) {
+        await log(
+          'JWT validation failed: User ID mismatch for user: $userId',
+          LogLevel.warning,
+        );
+        return false;
+      }
+
+      // Token doğrulaması
+      JWT.verify(
+        parsedJwt.accessToken,
+        SecretKey(_env.envConfig.jwtAccessSecretKey),
       );
-      return false;
+
+      await log('JWT validated successfully for user: $userId', LogLevel.info);
+      return true;
     } on JWTExpiredException {
-      // Log: JWT süresi dolmuş
-      await AuditLogController().insertLog(
-        AuditLog(
-          createdBy: userId,
-          collection: _collectionPath,
-          message: 'JWT expired for user: $userId',
-          level: LogLevel.warning,
-        ),
+      await log('JWT has expired for user: $userId', LogLevel.warning);
+      return false;
+    } on JWTInvalidException {
+      await log(
+        'JWT is invalid (tampered or malformed) for user: $userId',
+        LogLevel.error,
       );
       return false;
-    } on JWTException {
-      // Log: JWT hatası
-      await AuditLogController().insertLog(
-        AuditLog(
-          createdBy: userId,
-          collection: _collectionPath,
-          message: 'JWT validation error for user: $userId',
-          level: LogLevel.error,
-        ),
+    } on JWTException catch (e) {
+      await log(
+        'General JWT exception: ${e.message} for user: $userId',
+        LogLevel.error,
+      );
+      return false;
+    } on FormatException {
+      await log('JWT format error for user: $userId', LogLevel.error);
+      return false;
+    } catch (e) {
+      await log(
+        'Unknown error during JWT validation for user: $userId — $e',
+        LogLevel.error,
       );
       return false;
     }

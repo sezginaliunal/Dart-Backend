@@ -9,6 +9,7 @@ import 'package:project_base/controllers/user_controller.dart';
 import 'package:project_base/model/api_response.dart';
 import 'package:project_base/model/audit_log.dart';
 import 'package:project_base/model/user.dart';
+import 'package:project_base/services/db/db.dart';
 import 'package:project_base/services/features/jwt.dart';
 import 'package:project_base/services/server/smtp.dart';
 import 'package:project_base/utils/helpers/json_helper.dart';
@@ -36,6 +37,9 @@ class AuthService {
       // Log kayıt işlemi
       await AuditLogController().insertLog(
         AuditLog(
+          createdAt: DateTime.now(),
+          id: await MongoDatabase()
+              .getNextStringSequenceId(CollectionPath.audit_log.name),
           createdBy: email,
           collection: CollectionPath.users.name,
           message: 'User registration attempt: $email',
@@ -46,6 +50,9 @@ class AuthService {
       if (result.success) {
         await AuditLogController().insertLog(
           AuditLog(
+            createdAt: DateTime.now(),
+            id: await MongoDatabase()
+                .getNextStringSequenceId(CollectionPath.audit_log.name),
             createdBy: email,
             collection: CollectionPath.users.name,
             message: 'User registered successfully: $email',
@@ -54,6 +61,9 @@ class AuthService {
       } else {
         await AuditLogController().insertLog(
           AuditLog(
+            createdAt: DateTime.now(),
+            id: await MongoDatabase()
+                .getNextStringSequenceId(CollectionPath.audit_log.name),
             createdBy: email,
             collection: CollectionPath.users.name,
             message: 'User registration failed: $email',
@@ -70,6 +80,9 @@ class AuthService {
     } else {
       await AuditLogController().insertLog(
         AuditLog(
+          createdAt: DateTime.now(),
+          id: await MongoDatabase()
+              .getNextStringSequenceId(CollectionPath.audit_log.name),
           collection: CollectionPath.users.name,
           message: 'Invalid registration request body.',
           level: LogLevel.warning,
@@ -97,6 +110,9 @@ class AuthService {
       // Log giriş işlemi
       await AuditLogController().insertLog(
         AuditLog(
+          createdAt: DateTime.now(),
+          id: await MongoDatabase()
+              .getNextStringSequenceId(CollectionPath.audit_log.name),
           createdBy: email,
           collection: CollectionPath.users.name,
           message: 'Login attempt: $email',
@@ -112,6 +128,9 @@ class AuthService {
         // Başarılı login logu
         await AuditLogController().insertLog(
           AuditLog(
+            createdAt: DateTime.now(),
+            id: await MongoDatabase()
+                .getNextStringSequenceId(CollectionPath.audit_log.name),
             createdBy: email,
             collection: CollectionPath.users.name,
             message: 'User logged in successfully: $email',
@@ -127,6 +146,9 @@ class AuthService {
         // Başarısız login logu
         await AuditLogController().insertLog(
           AuditLog(
+            createdAt: DateTime.now(),
+            id: await MongoDatabase()
+                .getNextStringSequenceId(CollectionPath.audit_log.name),
             createdBy: email,
             collection: CollectionPath.users.name,
             message: 'Login failed for user: $email',
@@ -143,6 +165,9 @@ class AuthService {
     } else {
       await AuditLogController().insertLog(
         AuditLog(
+          createdAt: DateTime.now(),
+          id: await MongoDatabase()
+              .getNextStringSequenceId(CollectionPath.audit_log.name),
           collection: CollectionPath.users.name,
           message: 'Invalid login request body.',
           level: LogLevel.warning,

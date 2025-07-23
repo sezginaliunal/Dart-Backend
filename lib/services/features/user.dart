@@ -42,14 +42,12 @@ class UserService {
       final page = int.tryParse(params['page'] ?? '1') ?? 1; // Varsayılan: 1
       final limit =
           int.tryParse(params['limit'] ?? '10') ?? 10; // Varsayılan: 10
-      final sort = params['sort'] ?? '_id'; // Varsayılan: '_id'
       final descending =
           params['descending']?.toLowerCase() == 'true'; // Varsayılan: false
 
       final result = await userController.getUsers(
         page,
         limit,
-        sort,
         descending: descending,
       );
       return JsonResponseHelper.sendJsonResponse(
@@ -57,8 +55,7 @@ class UserService {
         res,
         result,
       );
-    } catch (e) {
-      // Hata durumunda uygun yanıt döndür
+    } on Exception catch (e) {
       return JsonResponseHelper.sendJsonResponse(
         statusCode: HttpStatus.badRequest,
         res,

@@ -1,0 +1,1 @@
+enum AppDirectory { avatars, package }

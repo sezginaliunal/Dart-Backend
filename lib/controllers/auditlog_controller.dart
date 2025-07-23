@@ -21,7 +21,6 @@ class AuditLogController extends MyController {
       collectionName.name,
       page: page,
       limit: limit,
-      sort: 'timestamp', // Sıralama alanı
       fromJson: AuditLog.fromJson,
       descending: descending, // Dönüşüm fonksiyonu
     );
