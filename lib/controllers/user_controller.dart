@@ -1,175 +1,76 @@
 import 'dart:io';
-import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
 import 'package:project_base/config/constants/response_messages.dart';
 import 'package:project_base/core/controller.dart';
 import 'package:project_base/model/api_response.dart';
 import 'package:project_base/model/user.dart';
-import 'package:project_base/utils/extensions/hash_string.dart';
-import 'package:project_base/utils/extensions/validators.dart';
 
-class UserController extends MyController {
-  UserController() {
+class UserController extends BaseController<User> {
+  UserController() : super(fromJson: User.fromJson) {
     collectionName = CollectionPath.users;
   }
-  Future<ApiResponse<User?>> isUserExistByEmail(String email) async {
-    try {
-      final result = await db
-          .getCollection(collectionName.name)
-          .findOne(where.eq('email', email));
-      if (result != null) {
-        final user = User.fromJson(result);
 
-        return ApiResponse(data: user);
-      } else {
-        return ApiResponse(
-          success: false,
-          message: ResponseMessages.userNotFound.message,
-          statusCode: HttpStatus.notFound,
-        );
-      }
-    } on Exception catch (_) {
-      return ApiResponse(
-        success: false,
-        message: ResponseMessages.somethingError.message,
-        statusCode: HttpStatus.internalServerError,
-      );
-    }
+  Future<ApiResponse<User?>> isUserExistByEmail(String email) =>
+      findOneByField('email', email);
+
+  Future<ApiResponse<User?>> getUserById(String id) =>
+      findOneByField('_id', id);
+
+  Future<ApiResponse<List<User>>> getUsers({
+    int? page,
+    int? limit,
+    bool descending = false,
+  }) {
+    return paginate(page: page, limit: limit, descending: descending);
   }
 
-  Future<ApiResponse<User?>> isUserExist(String id) async {
-    try {
-      final result = await db
-          .getCollection(collectionName.name)
-          .findOne(where.eq('_id', id));
-      if (result != null) {
-        final user = User.fromJson(result);
-
-        return ApiResponse(data: user);
-      } else {
-        return ApiResponse(
-          success: false,
-          message: ResponseMessages.userNotFound.message,
-          statusCode: HttpStatus.notFound,
-        );
-      }
-    } on Exception catch (_) {
-      return ApiResponse(
-        success: false,
-        message: ResponseMessages.somethingError.message,
-        statusCode: HttpStatus.internalServerError,
-      );
-    }
+  Future<ApiResponse<List<User>>> getUsersByUsername(
+      {required String username,
+      int? page,
+      int? limit,
+      bool descending = false}) {
+    return paginateByField(
+      queryField: 'username',
+      value: username,
+      page: page,
+      limit: limit,
+      sort: 'createdAt',
+      descending: descending,
+    );
   }
 
-  // Kullanıcıyı ID ile getirme
-  Future<ApiResponse<User?>> getUserById(String id) async {
-    try {
-      final result = await db
-          .getCollection(collectionName.name)
-          .findOne(where.eq('_id', id));
-
-      if (result != null) {
-        final user = User.fromJson(result);
-
-        return ApiResponse(data: user);
-      } else {
-        return ApiResponse(
-          success: false,
-          message: ResponseMessages.userNotFound.message,
-          statusCode: HttpStatus.notFound,
-        );
-      }
-    } catch (e) {
-      return ApiResponse(
-        success: false,
-        message: ResponseMessages.somethingError.message,
-        statusCode: HttpStatus.internalServerError,
-      );
-    }
+  Future<ApiResponse<List<User>>> getUsersByUsernameAndEmail({
+    required String username,
+    required String email,
+    int? page,
+    int? limit,
+    bool descending = false,
+  }) {
+    return paginateByFields(
+      queryFields: {
+        'username': username,
+        'email': email,
+      },
+      page: page,
+      limit: limit,
+      sort: 'email',
+      descending: descending,
+    );
   }
 
-  // Kullanıcıyı güncelleme
   Future<ApiResponse<bool>> updateUser(
-    String userId,
-    String field,
-    dynamic value,
-  ) async {
+      String userId, String field, dynamic value) async {
     try {
-      final result = await db
-          .getCollection(collectionName.name)
-          .updateOne(where.eq('_id', userId), modify.set(field, value));
-      if (result.nModified > 0) {
-        return ApiResponse(
-          data: true,
-        );
-      } else {
-        return ApiResponse(
-          statusCode: HttpStatus.notFound,
-          success: false,
-        );
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  //Şifre güncelleme
-  Future<ApiResponse<bool>> updatePassword(
-    String userId,
-    String value,
-  ) async {
-    try {
-      if (!value.isValidPassword) {
-        return ApiResponse<bool>(
-          success: false,
-          statusCode: HttpStatus.badRequest,
-          message: ResponseMessages.invalidPassword.message,
-        );
-      }
-      final result = await db.getCollection(collectionName.name).updateOne(
-            where.eq('_id', userId),
-            modify.set(
-              'password',
-              value.toSha256(),
-            ),
-          );
-      if (result.nModified > 0) {
-        return ApiResponse(
-          data: true,
-        );
-      } else {
-        return ApiResponse(
-          statusCode: HttpStatus.notFound,
-          success: false,
-        );
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<ApiResponse<List<User>>> getUsers(
-    int page,
-    int limit, {
-    required bool descending,
-  }) async {
-    try {
-      final result = await db.paginateData(
-        collectionName.name,
-        page: page,
-        limit: limit,
-        descending: descending,
-        fromJson: User.fromJson,
-      );
-
-      return result;
-    } on Exception catch (_) {
+      final success = await updateField(userId, field, value);
       return ApiResponse(
-        success: false,
-        message: ResponseMessages.somethingError.message,
-        statusCode: HttpStatus.internalServerError,
-      );
+          data: success,
+          success: success,
+          statusCode: success ? HttpStatus.ok : HttpStatus.notFound);
+    } catch (e) {
+      return ApiResponse(
+          success: false,
+          message: ResponseMessages.somethingError.message,
+          statusCode: HttpStatus.internalServerError);
     }
   }
 }

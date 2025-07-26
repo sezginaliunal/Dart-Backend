@@ -39,17 +39,16 @@ class UserService {
 
     try {
       // Parametreleri al ve varsayılan değer ata
-      final page = int.tryParse(params['page'] ?? '1') ?? 1; // Varsayılan: 1
+      final page =
+          params.containsKey('page') ? int.tryParse(params['page']!) : null;
       final limit =
-          int.tryParse(params['limit'] ?? '10') ?? 10; // Varsayılan: 10
+          params.containsKey('limit') ? int.tryParse(params['limit']!) : null;
+
       final descending =
           params['descending']?.toLowerCase() == 'true'; // Varsayılan: false
 
       final result = await userController.getUsers(
-        page,
-        limit,
-        descending: descending,
-      );
+          page: page, limit: limit, descending: descending);
       return JsonResponseHelper.sendJsonResponse(
         statusCode: result.statusCode,
         res,

@@ -28,7 +28,7 @@ class Middleware {
       );
     }
 
-    final isUserExist = await userController.isUserExist(userId);
+    final isUserExist = await userController.getUserById(userId);
     if (!isUserExist.success) {
       final result = ApiResponse<void>(
         success: false,
@@ -112,7 +112,7 @@ class Middleware {
         statusCode: result.statusCode,
       );
     }
-    final user = await userController.isUserExist(userId);
+    final user = await userController.getUserById(userId);
     if (user.data?.accountStatus != AccountStatus.active.value) {
       final result = ApiResponse<void>(
         success: false,
@@ -145,7 +145,7 @@ class Middleware {
       );
     }
 //Kullanıcı Var mı
-    final isUserExist = await userController.isUserExist(userId);
+    final isUserExist = await userController.getUserById(userId);
     if (!isUserExist.success) {
       final result = ApiResponse<void>(
         success: false,

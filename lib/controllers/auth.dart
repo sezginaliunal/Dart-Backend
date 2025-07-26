@@ -10,14 +10,15 @@ import 'package:project_base/model/user.dart';
 import 'package:project_base/utils/extensions/hash_string.dart';
 import 'package:project_base/utils/extensions/validators.dart';
 
-class AuthController extends MyController {
-  AuthController() {
+class AuthController extends BaseController<User> {
+  AuthController() : super(fromJson: User.fromJson) {
     collectionName = CollectionPath.users;
   }
+
   // Kayıt olma
   Future<ApiResponse<User>> register(User user) async {
     if (!user.email.isValidEmail) {
-      return ApiResponse<User>(
+      return ApiResponse(
         success: false,
         message: ResponseMessages.invalidEmail.message,
         statusCode: HttpStatus.badRequest,
@@ -25,40 +26,37 @@ class AuthController extends MyController {
     }
 
     if (!user.password.isValidPassword) {
-      return ApiResponse<User>(
+      return ApiResponse(
         success: false,
         statusCode: HttpStatus.badRequest,
         message: ResponseMessages.invalidPassword.message,
       );
     }
 
-    final isUserExist = await db.getCollection(collectionName.name).findOne(
-          where.eq('email', user.email),
-        );
+    final existingUserResponse = await findOneByField('email', user.email);
 
-    if (isUserExist != null) {
-      return ApiResponse<User>(
+    if (existingUserResponse.data != null) {
+      return ApiResponse(
         success: false,
         message: ResponseMessages.existUser.message,
         statusCode: HttpStatus.conflict,
       );
-    } else {
-      user.password = user.password.toSha256(); // Salt eklenebilir
+    }
 
-      try {
-        await db.getCollection(collectionName.name).insert(user.toJson());
+    user.password = user.password.toSha256();
 
-        return ApiResponse<User>(
-          message: ResponseMessages.successRegister.message,
-          statusCode: HttpStatus.created,
-        );
-      } on Exception catch (_) {
-        return ApiResponse<User>(
-          success: false,
-          message: ResponseMessages.internalError.message,
-          statusCode: HttpStatus.internalServerError,
-        );
-      }
+    try {
+      await db.getCollection(collectionName.name).insert(user.toJson());
+      return ApiResponse(
+        message: ResponseMessages.successRegister.message,
+        statusCode: HttpStatus.created,
+      );
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: ResponseMessages.internalError.message,
+        statusCode: HttpStatus.internalServerError,
+      );
     }
   }
 
@@ -72,59 +70,54 @@ class AuthController extends MyController {
       );
     }
 
-    final user = await db
-        .getCollection(collectionName.name)
-        .findOne(where.eq('email', email));
+    final userResponse = await findOneByField('email', email);
 
-    if (user != null) {
-      final accountStatusValue = user['accountStatus'];
-      final accountStatus = checkAccountStatus(accountStatusValue as int);
-
-      if (accountStatus != AccountStatus.active) {
-        final message = {
-          AccountStatus.banned: ResponseMessages.accountBanned.message,
-          AccountStatus.suspended: ResponseMessages.accountSuspended.message,
-          AccountStatus.deleted: ResponseMessages.accountInactive.message,
-          AccountStatus.inactive: ResponseMessages.accountInactive.message,
-        }[accountStatus];
-
-        return ApiResponse(
-          success: false,
-          message: message,
-          statusCode: HttpStatus.badRequest,
-        );
-      }
-
-      final hashedPassword = user['password'].toString();
-
-      if (password.verifySha256(hashedPassword)) {
-        final parseUser = User.fromJson(user);
-        return ApiResponse(
-          data: parseUser,
-          message: ResponseMessages.successLogin.message,
-          statusCode: HttpStatus.ok,
-        );
-      } else {
-        return ApiResponse(
-          success: false,
-          message: ResponseMessages.wrongPassword.message,
-          statusCode: HttpStatus.badRequest, // Unauthorized
-        );
-      }
-    } else {
+    if (userResponse.data == null) {
       return ApiResponse(
         success: false,
         message: ResponseMessages.userNotFound.message,
-        statusCode: HttpStatus.badRequest, // Not Found
+        statusCode: HttpStatus.notFound,
       );
     }
+
+    final userJson = userResponse.data!; // User objesi
+
+    final accountStatus = checkAccountStatus(userJson.accountStatus);
+
+    if (accountStatus != AccountStatus.active) {
+      final message = {
+        AccountStatus.banned: ResponseMessages.accountBanned.message,
+        AccountStatus.suspended: ResponseMessages.accountSuspended.message,
+        AccountStatus.deleted: ResponseMessages.accountInactive.message,
+        AccountStatus.inactive: ResponseMessages.accountInactive.message,
+      }[accountStatus];
+
+      return ApiResponse(
+        success: false,
+        message: message,
+        statusCode: HttpStatus.badRequest,
+      );
+    }
+
+    if (!password.verifySha256(userJson.password)) {
+      return ApiResponse(
+        success: false,
+        message: ResponseMessages.wrongPassword.message,
+        statusCode: HttpStatus.badRequest,
+      );
+    }
+
+    return ApiResponse(
+      data: userJson,
+      message: ResponseMessages.successLogin.message,
+      statusCode: HttpStatus.ok,
+    );
   }
 
   Future<void> replaceTokenInDb(JwtModel jwt) async {
     await db
         .getCollection(CollectionPath.token.name)
         .remove(where.eq('userId', jwt.userId));
-
     await db.getCollection(CollectionPath.token.name).insert(jwt.toJson());
   }
 }

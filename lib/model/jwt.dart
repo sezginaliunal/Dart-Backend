@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:uuid/uuid.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 
 part 'jwt.g.dart';
 
@@ -8,13 +8,13 @@ class JwtModel {
   JwtModel({
     required this.accessToken,
     required this.userId,
-    String? id,
-  }) : id = id ?? const Uuid().v4();
+    required this.id,
+  });
 
   factory JwtModel.fromJson(Map<String, dynamic> json) =>
       _$JwtModelFromJson(json);
   @JsonKey(name: '_id')
-  final String? id;
+  final String id;
   final String accessToken;
   final String userId;
 

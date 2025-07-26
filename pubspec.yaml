@@ -15,7 +15,6 @@ dependencies:
   json_annotation: ^4.9.0
   mailer: ^6.1.2
   mongo_dart: ^0.10.3
-  uuid: ^4.4.2
   # path: ^1.8.0
   very_good_analysis: any
 

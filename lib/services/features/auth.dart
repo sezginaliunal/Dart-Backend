@@ -1,15 +1,12 @@
 import 'dart:io';
 
 import 'package:alfred/alfred.dart';
-import 'package:project_base/config/constants/collections.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/response_messages.dart';
-import 'package:project_base/controllers/auditlog_controller.dart';
 import 'package:project_base/controllers/auth.dart';
 import 'package:project_base/controllers/user_controller.dart';
 import 'package:project_base/model/api_response.dart';
-import 'package:project_base/model/audit_log.dart';
 import 'package:project_base/model/user.dart';
-import 'package:project_base/services/db/db.dart';
 import 'package:project_base/services/features/jwt.dart';
 import 'package:project_base/services/server/smtp.dart';
 import 'package:project_base/utils/helpers/json_helper.dart';
@@ -28,49 +25,14 @@ class AuthService {
       final password = body['password'].toString();
       final pushNotificationId = body['pushNotificationId'].toString();
       final user = User(
+        id: ObjectId().oid,
         username: username,
         email: email,
         password: password,
         pushNotificationId: pushNotificationId,
       );
 
-      // Log kayıt işlemi
-      await AuditLogController().insertLog(
-        AuditLog(
-          createdAt: DateTime.now(),
-          id: await MongoDatabase()
-              .getNextStringSequenceId(CollectionPath.audit_log.name),
-          createdBy: email,
-          collection: CollectionPath.users.name,
-          message: 'User registration attempt: $email',
-        ),
-      );
-
       final result = await authController.register(user);
-      if (result.success) {
-        await AuditLogController().insertLog(
-          AuditLog(
-            createdAt: DateTime.now(),
-            id: await MongoDatabase()
-                .getNextStringSequenceId(CollectionPath.audit_log.name),
-            createdBy: email,
-            collection: CollectionPath.users.name,
-            message: 'User registered successfully: $email',
-          ),
-        );
-      } else {
-        await AuditLogController().insertLog(
-          AuditLog(
-            createdAt: DateTime.now(),
-            id: await MongoDatabase()
-                .getNextStringSequenceId(CollectionPath.audit_log.name),
-            createdBy: email,
-            collection: CollectionPath.users.name,
-            message: 'User registration failed: $email',
-            level: LogLevel.error,
-          ),
-        );
-      }
 
       return JsonResponseHelper.sendJsonResponse(
         statusCode: result.statusCode,
@@ -78,17 +40,6 @@ class AuthService {
         result,
       );
     } else {
-      await AuditLogController().insertLog(
-        AuditLog(
-          createdAt: DateTime.now(),
-          id: await MongoDatabase()
-              .getNextStringSequenceId(CollectionPath.audit_log.name),
-          collection: CollectionPath.users.name,
-          message: 'Invalid registration request body.',
-          level: LogLevel.warning,
-        ),
-      );
-
       return JsonResponseHelper.sendJsonResponse(
         statusCode: HttpStatus.badRequest,
         res,
@@ -107,35 +58,12 @@ class AuthService {
       final email = body['email'].toString();
       final password = body['password'].toString();
 
-      // Log giriş işlemi
-      await AuditLogController().insertLog(
-        AuditLog(
-          createdAt: DateTime.now(),
-          id: await MongoDatabase()
-              .getNextStringSequenceId(CollectionPath.audit_log.name),
-          createdBy: email,
-          collection: CollectionPath.users.name,
-          message: 'Login attempt: $email',
-        ),
-      );
-
       final result = await authController.login(email, password);
       if (result.success) {
         final user = result.data;
 
         final jwt = ApiResponse(data: await jwtService.createJwt(user!));
         await authController.replaceTokenInDb(jwt.data!);
-        // Başarılı login logu
-        await AuditLogController().insertLog(
-          AuditLog(
-            createdAt: DateTime.now(),
-            id: await MongoDatabase()
-                .getNextStringSequenceId(CollectionPath.audit_log.name),
-            createdBy: email,
-            collection: CollectionPath.users.name,
-            message: 'User logged in successfully: $email',
-          ),
-        );
 
         return JsonResponseHelper.sendJsonResponse(
           statusCode: result.statusCode,
@@ -143,19 +71,6 @@ class AuthService {
           jwt,
         );
       } else {
-        // Başarısız login logu
-        await AuditLogController().insertLog(
-          AuditLog(
-            createdAt: DateTime.now(),
-            id: await MongoDatabase()
-                .getNextStringSequenceId(CollectionPath.audit_log.name),
-            createdBy: email,
-            collection: CollectionPath.users.name,
-            message: 'Login failed for user: $email',
-            level: LogLevel.warning,
-          ),
-        );
-
         return JsonResponseHelper.sendJsonResponse(
           statusCode: result.statusCode,
           res,
@@ -163,17 +78,6 @@ class AuthService {
         );
       }
     } else {
-      await AuditLogController().insertLog(
-        AuditLog(
-          createdAt: DateTime.now(),
-          id: await MongoDatabase()
-              .getNextStringSequenceId(CollectionPath.audit_log.name),
-          collection: CollectionPath.users.name,
-          message: 'Invalid login request body.',
-          level: LogLevel.warning,
-        ),
-      );
-
       return JsonResponseHelper.sendJsonResponse(
         statusCode: HttpStatus.badRequest,
         res,
