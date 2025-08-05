@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:project_base/controllers/user_controller.dart';
 import 'package:project_base/utils/enums/account.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
@@ -11,10 +12,10 @@ import 'package:project_base/utils/extensions/hash_string.dart';
 import 'package:project_base/utils/extensions/validators.dart';
 
 class AuthController extends BaseController<User> {
-  AuthController() : super(fromJson: User.fromJson) {
-    collectionName = CollectionPath.users;
-  }
+  AuthController()
+      : super(collectionPath: CollectionPath.users, fromJson: User.fromJson);
 
+  final _userController = UserController();
   // Kayıt olma
   Future<ApiResponse<User>> register(User user) async {
     if (!user.email.isValidEmail) {
@@ -33,7 +34,8 @@ class AuthController extends BaseController<User> {
       );
     }
 
-    final existingUserResponse = await findOneByField('email', user.email);
+    final existingUserResponse =
+        await _userController.findUserByField('email', user.email);
 
     if (existingUserResponse.data != null) {
       return ApiResponse(
@@ -45,19 +47,11 @@ class AuthController extends BaseController<User> {
 
     user.password = user.password.toSha256();
 
-    try {
-      await db.getCollection(collectionName.name).insert(user.toJson());
-      return ApiResponse(
-        message: ResponseMessages.successRegister.message,
-        statusCode: HttpStatus.created,
-      );
-    } catch (e) {
-      return ApiResponse(
-        success: false,
-        message: ResponseMessages.internalError.message,
-        statusCode: HttpStatus.internalServerError,
-      );
-    }
+    await _userController.insertUser(user);
+    return ApiResponse(
+      message: ResponseMessages.successRegister.message,
+      statusCode: HttpStatus.created,
+    );
   }
 
   // Giriş yapma
@@ -70,7 +64,7 @@ class AuthController extends BaseController<User> {
       );
     }
 
-    final userResponse = await findOneByField('email', email);
+    final userResponse = await _userController.findUserByField('email', email);
 
     if (userResponse.data == null) {
       return ApiResponse(
@@ -80,9 +74,9 @@ class AuthController extends BaseController<User> {
       );
     }
 
-    final userJson = userResponse.data!; // User objesi
+    final userJson = userResponse.data;
 
-    final accountStatus = checkAccountStatus(userJson.accountStatus);
+    final accountStatus = checkAccountStatus(userJson!.accountStatus);
 
     if (accountStatus != AccountStatus.active) {
       final message = {

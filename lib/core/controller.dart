@@ -1,38 +1,32 @@
-import 'dart:io';
-
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:project_base/config/constants/collections.dart';
-import 'package:project_base/config/constants/response_messages.dart';
 import 'package:project_base/model/api_response.dart';
 import 'package:project_base/services/db/db.dart';
 
 abstract class BaseController<T> {
-  BaseController({required this.fromJson});
-  final MongoDatabase db = MongoDatabase();
-  late final CollectionPath collectionName;
+  BaseController({required this.collectionPath, required this.fromJson});
+  final db = MongoDatabase();
+  late final CollectionPath collectionPath;
   T Function(Map<String, dynamic>) fromJson;
 
   // Tek bir alan ve değere göre dökümant bulma (ör: email, id vb.)
-  Future<ApiResponse<T?>> findOneByField(String field, dynamic value) async {
-    try {
-      final result = await db
-          .getCollection(collectionName.name)
-          .findOne(where.eq(field, value));
-      if (result != null) {
-        return ApiResponse(data: fromJson(result));
-      }
-      return ApiResponse(
-        success: false,
-        message: ResponseMessages.notFound.message,
-        statusCode: HttpStatus.notFound,
-      );
-    } catch (_) {
-      return ApiResponse(
-        success: false,
-        message: ResponseMessages.somethingError.message,
-        statusCode: HttpStatus.internalServerError,
-      );
-    }
+  Future<ApiResponse<T?>> findOneByField(
+    String field,
+    dynamic value,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
+    return db.findOneByField<T>(
+      collectionPath: collectionPath,
+      field: field,
+      value: value,
+      fromJson: fromJson,
+    );
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> insertDocument({
+    required Map<String, dynamic> document,
+  }) async {
+    return db.insert(collectionPath: collectionPath, document: document);
   }
 
   // Genel listeleme, filtreleme ve sayfalama
@@ -43,7 +37,7 @@ abstract class BaseController<T> {
     SelectorBuilder? selector,
   }) async {
     return db.paginateData<T>(
-      collectionName.name,
+      collectionPath.name,
       fromJson: fromJson,
       page: page,
       limit: limit,
@@ -61,7 +55,7 @@ abstract class BaseController<T> {
     bool? descending,
   }) async {
     return db.paginateDataByFields<T>(
-      collectionName.name,
+      collectionPath.name,
       fromJson: fromJson,
       queryFields: queryFields,
       page: page,
@@ -81,7 +75,7 @@ abstract class BaseController<T> {
     bool? descending,
   }) async {
     return db.paginateDataById<T>(
-      collectionName.name,
+      collectionPath.name,
       fromJson: fromJson,
       queryField: queryField,
       value: value,
@@ -98,7 +92,7 @@ abstract class BaseController<T> {
     String pushField,
     dynamic documentId,
   ) async {
-    return db.addDocument(collectionName, idValue, pushField, documentId);
+    return db.addDocument(collectionPath, idValue, pushField, documentId);
   }
 
   // Belgeden push çıkarma
@@ -107,15 +101,33 @@ abstract class BaseController<T> {
     String pushField,
     dynamic documentId,
   ) async {
-    return db.deleteDocument(collectionName, idValue, pushField, documentId);
+    return db.deleteDocument(collectionPath, idValue, pushField, documentId);
   }
 
   // Güncelleme işlemi için yardımcı fonksiyon
   Future<bool> updateField(String id, String field, dynamic value) async {
-    final result = await db.getCollection(collectionName.name).updateOne(
+    final result = await db.getCollection(collectionPath.name).updateOne(
           where.eq('_id', id),
           modify.set(field, value),
         );
     return result.nModified > 0;
+  }
+
+  // Bulk Insert
+  Future<ApiResponse<void>> bulkInsert(
+      List<Map<String, dynamic>> documents) async {
+    return db.bulkInsert(collectionPath.name, documents);
+  }
+
+  // Bulk Delete
+  Future<ApiResponse<void>> bulkDelete(
+      List<Map<String, dynamic>> filters) async {
+    return db.bulkDelete(collectionPath.name, filters);
+  }
+
+  // Bulk Update
+  Future<ApiResponse<void>> bulkUpdate(
+      List<Map<String, dynamic>> updates) async {
+    return db.bulkUpdate(collectionPath.name, updates);
   }
 }

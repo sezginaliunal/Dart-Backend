@@ -8,18 +8,20 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  alfred: ^1.1.1
-  crypto: ^3.0.3
-  dart_jsonwebtoken: ^2.14.0
-  dotenv: ^4.2.0
-  json_annotation: ^4.9.0
-  mailer: ^6.1.2
-  mongo_dart: ^0.10.3
+  alfred:
+  crypto:
+  dart_jsonwebtoken:
+  dotenv:
+  fixnum:
+  json_annotation:
+  mailer:
+  mime:
+  mongo_dart:
   # path: ^1.8.0
   very_good_analysis: any
 
 dev_dependencies:
   build_runner: ^2.3.3
   json_serializable: ^6.8.0
-  lints: ^3.0.0
+  lints: ^6.0.0
   test: ^1.24.0

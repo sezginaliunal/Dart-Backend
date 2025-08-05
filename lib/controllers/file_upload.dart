@@ -8,7 +8,7 @@ import 'package:project_base/utils/enums/directory.dart';
 class FileUploadController {
   final uploadDirectory = Directory('public');
   final allowedExtensions = ['jpg', 'jpeg', 'png'];
-  final maxFileSizeInBytes = 10 * 1024 * 1024; // 10 MB
+  final int maxFileSizeInBytes = 10 * 1024 * 1024; // 10 MB
 
   Future<ApiResponse<String>> handleFileUpload(
     HttpRequest req,

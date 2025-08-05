@@ -7,26 +7,29 @@ import 'package:project_base/model/user.dart';
 import 'package:project_base/services/db/db.dart';
 
 class JwtService {
+  factory JwtService() => _instance;
   JwtService._internal() {
     _env = Env();
   }
-  factory JwtService() => _instance;
   static final JwtService _instance = JwtService._internal();
 
   late final Env _env;
   final _db = MongoDatabase();
-  final _collection = CollectionPath.token.name;
+  final String _collection = CollectionPath.token.name;
 
   Future<JwtModel> createJwt(User user) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final exp = now + int.parse(_env.envConfig.jwtAccessTokenExpirationSeconds);
 
-    final jwt = JWT({
-      'sub': user.id,
-      'name': user.email,
-      'iat': now,
-      'exp': exp,
-    }, issuer: _env.envConfig.jwtIssuer);
+    final jwt = JWT(
+      {
+        'sub': user.id,
+        'name': user.email,
+        'iat': now,
+        'exp': exp,
+      },
+      issuer: _env.envConfig.jwtIssuer,
+    );
 
     final accessToken = jwt.sign(SecretKey(_env.envConfig.jwtAccessSecretKey));
 

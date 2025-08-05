@@ -16,6 +16,9 @@ class MongoDatabase {
   bool get isOpen => _db.isConnected;
   static final MongoDatabase _instance = MongoDatabase._init();
   final _env = Env();
+  DbCollection getCollection(String collectionName) {
+    return db.collection(collectionName);
+  }
 
   // Connect to database
   Future<void> connectDb() async {
@@ -62,42 +65,33 @@ class MongoDatabase {
     }
   }
 
-  Future<ApiResponse<List<T>>> paginateDataByFields<T>(
-    String collectionName, {
+//Queries
+  Future<ApiResponse<T?>> findOneByField<T>({
+    required CollectionPath collectionPath,
+    required String field,
+    required dynamic value,
     required T Function(Map<String, dynamic>) fromJson,
-    required Map<String, dynamic> queryFields,
-    int? page,
-    int? limit,
-    String? sort,
-    bool? descending,
   }) async {
-    return handleDatabaseOperation(() async {
-      final collection = db.collection(collectionName);
+    final result = await getCollection(collectionPath.name)
+        .findOne(where.eq(field, value));
+    if (result != null) {
+      final data = fromJson(result);
+      return ApiResponse<T?>(data: data);
+    }
+    return ApiResponse<T?>(
+      success: false,
+      message: ResponseMessages.notFound.message,
+      statusCode: HttpStatus.notFound,
+    );
+  }
 
-      final currentPage = page ?? 1;
-      final currentLimit = limit ?? 10;
+  Future<ApiResponse<Map<String, dynamic>>> insert({
+    required CollectionPath collectionPath,
+    required Map<String, dynamic> document,
+  }) async {
+    final result = await getCollection(collectionPath.name).insert(document);
 
-      // Doğru filtre zincirleme
-      var query = where;
-      queryFields.forEach((key, value) {
-        if (value != null && value.toString().trim().isNotEmpty) {
-          query = query.eq(key, value); // <- ZİNCİRLE!
-        }
-      });
-
-      final cursor = await collection
-          .find(
-            query
-                .sortBy(sort ?? '_id', descending: descending ?? false)
-                .skip((currentPage - 1) * currentLimit)
-                .limit(currentLimit),
-          )
-          .toList();
-
-      final dataList = cursor.map(fromJson).toList();
-
-      return dataList;
-    });
+    return ApiResponse<Map<String, dynamic>>(data: result);
   }
 
 // Pagination method
@@ -136,16 +130,108 @@ class MongoDatabase {
 
       final dataList = <T>[];
       for (final e in rawCursor) {
-        try {
-          final item = fromJson(e);
-          if (item != null) dataList.add(item);
-        } catch (err) {
-          print('⚠️ JSON parse hatası: $err\nVeri: $e');
-          continue;
-        }
+        final item = fromJson(e);
+        if (item != null) dataList.add(item);
       }
 
       return dataList;
+    });
+  }
+
+  Future<ApiResponse<List<T>>> paginateDataByFields<T>(
+    String collectionName, {
+    required T Function(Map<String, dynamic>) fromJson,
+    required Map<String, dynamic> queryFields,
+    int? page,
+    int? limit,
+    String? sort,
+    bool? descending,
+  }) async {
+    return handleDatabaseOperation(() async {
+      final collection = db.collection(collectionName);
+
+      final currentPage = page ?? 1;
+      final currentLimit = limit ?? 10;
+
+      // Doğru filtre zincirleme
+      var query = where;
+      queryFields.forEach((key, value) {
+        if (value != null && value.toString().trim().isNotEmpty) {
+          query = query.eq(key, value); // <- ZİNCİRLE!
+        }
+      });
+
+      final cursor = await collection
+          .find(
+            query
+                .sortBy(sort ?? '_id', descending: descending ?? false)
+                .skip((currentPage - 1) * currentLimit)
+                .limit(currentLimit),
+          )
+          .toList();
+
+      final dataList = cursor.map(fromJson).toList();
+
+      return dataList;
+    });
+  }
+
+//Bulk Operations
+  Future<ApiResponse<void>> bulkInsert(
+    String collectionName,
+    List<Map<String, dynamic>> documents,
+  ) async {
+    return handleDatabaseOperation(() async {
+      final collection = db.collection(collectionName);
+
+      // insertMany bulk işlemi bekler, her belge Map olmalı
+      await collection.bulkWrite(
+        documents
+            .map((doc) => {
+                  'insertOne': {'document': doc}
+                })
+            .toList(),
+      );
+    });
+  }
+
+  Future<ApiResponse<void>> bulkDelete(
+    String collectionName,
+    List<Map<String, dynamic>> filters,
+  ) async {
+    return handleDatabaseOperation(() async {
+      final collection = db.collection(collectionName);
+
+      // deleteOne bulk işlemi için filtre listesi ile
+      await collection.bulkWrite(
+        filters
+            .map((filter) => {
+                  'deleteOne': {'filter': filter}
+                })
+            .toList(),
+      );
+    });
+  }
+
+  Future<ApiResponse<void>> bulkUpdate(
+    String collectionName,
+    List<Map<String, dynamic>> updates,
+  ) async {
+    return handleDatabaseOperation(() async {
+      final collection = db.collection(collectionName);
+
+      // bulkWrite için formatlama yapıyoruz:
+      final bulkOperations = updates.map((updateMap) {
+        return {
+          'updateOne': {
+            'filter': updateMap['filter'] as Map<String, dynamic>,
+            'update': updateMap['update'] as Map<String, dynamic>,
+            if (updateMap.containsKey('upsert')) 'upsert': updateMap['upsert'],
+          }
+        };
+      }).toList();
+
+      await collection.bulkWrite(bulkOperations);
     });
   }
 
@@ -185,14 +271,13 @@ class MongoDatabase {
             .toList();
       }
 
-      print('Returned records count: ${cursor.length}');
-
       final dataList = cursor.map(fromJson).toList();
 
       return dataList;
     });
   }
 
+//Document Operations
   Future<Map<String, dynamic>> addDocument(
     CollectionPath collectionName,
     dynamic value,
@@ -215,9 +300,5 @@ class MongoDatabase {
       where.eq('_id', value),
       modify.pull(pushField, documentId),
     );
-  }
-
-  DbCollection getCollection(String collectionPath) {
-    return db.collection(collectionPath);
   }
 }

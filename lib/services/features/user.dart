@@ -14,7 +14,7 @@ class UserService {
     if (params.isNotEmpty) {
       final id = params['id'].toString();
 
-      final result = await userController.getUserById(id);
+      final result = await userController.findUserByField('_id', id);
 
       return JsonResponseHelper.sendJsonResponse(
         statusCode: result.statusCode,
@@ -48,7 +48,10 @@ class UserService {
           params['descending']?.toLowerCase() == 'true'; // Varsayılan: false
 
       final result = await userController.getUsers(
-          page: page, limit: limit, descending: descending);
+        page: page,
+        limit: limit,
+        descending: descending,
+      );
       return JsonResponseHelper.sendJsonResponse(
         statusCode: result.statusCode,
         res,

@@ -28,7 +28,7 @@ class Middleware {
       );
     }
 
-    final isUserExist = await userController.getUserById(userId);
+    final isUserExist = await userController.findUserByField('_id', userId);
     if (!isUserExist.success) {
       final result = ApiResponse<void>(
         success: false,
@@ -43,7 +43,7 @@ class Middleware {
       );
     }
 
-    final parseUser = await userController.getUserById(userId);
+    final parseUser = await userController.findUserByField('_id', userId);
     if (parseUser.success) {
       final userRole = checkAccountRole(parseUser.data?.accountRole ?? 0);
       final isAdmin = userRole.isAdmin;
@@ -112,7 +112,7 @@ class Middleware {
         statusCode: result.statusCode,
       );
     }
-    final user = await userController.getUserById(userId);
+    final user = await userController.findUserByField('_id', userId);
     if (user.data?.accountStatus != AccountStatus.active.value) {
       final result = ApiResponse<void>(
         success: false,
@@ -145,7 +145,7 @@ class Middleware {
       );
     }
 //Kullanıcı Var mı
-    final isUserExist = await userController.getUserById(userId);
+    final isUserExist = await userController.findUserByField('_id', userId);
     if (!isUserExist.success) {
       final result = ApiResponse<void>(
         success: false,
@@ -160,7 +160,7 @@ class Middleware {
       );
     }
 
-    final parseUser = await userController.getUserById(userId);
+    final parseUser = await userController.findUserByField('_id', userId);
     if (parseUser.success) {
       // Enum değerini int üzerinden kontrol et
       final userRole = checkAccountRole(parseUser.data?.accountRole ?? 0);
