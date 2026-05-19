@@ -4,7 +4,6 @@ import 'package:dart_backend/core/env/env_service.dart';
 import 'package:dart_backend/core/file/file_storage.dart';
 import 'package:dart_backend/core/jwt/jwt_repository.dart';
 import 'package:dart_backend/core/jwt/jwt_service.dart';
-import 'package:dart_backend/feature/product/product_repository.dart';
 import 'package:dart_backend/feature/user/user_repository.dart';
 import 'package:dart_backend/server/middleware/logger_middleware.dart';
 import 'package:dart_backend/server/router/app_router.dart';
@@ -17,14 +16,12 @@ Future<HttpServer> startServer({
   required JwtRepository jwtRepo,
   required JwtService jwtService,
   required FileStorage fileStorage,
-  required ProductRepository productRepo,
 }) async {
   final router = buildAppRouter(
     userRepo: userRepo,
     jwtRepo: jwtRepo,
     jwtService: jwtService,
     fileStorage: fileStorage,
-    productRepo: productRepo,
   );
 
   final pipeline = Pipeline()
@@ -37,7 +34,9 @@ Future<HttpServer> startServer({
   print('');
   print('┌─────────────────────────────────────────────────┐');
   print('│  🚀  Server başlatıldı                          │');
-  print('│  http://${env.serverHost}:${env.serverPort}                           │');
+  print(
+    '│  http://${env.serverHost}:${env.serverPort}                           │',
+  );
   print('└─────────────────────────────────────────────────┘');
   print('');
   print('  PUBLIC');

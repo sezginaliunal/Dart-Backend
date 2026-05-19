@@ -8,21 +8,20 @@ import 'package:dart_backend/feature/user/models/user.dart';
 import 'package:dart_backend/feature/user/user_repository.dart';
 import 'package:dart_backend/server/handler/response_handler.dart';
 import 'package:dart_backend/server/middleware/jwt_auth_middleware.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 import 'package:shelf/shelf.dart';
 
 final class UserHandler {
   final UserRepository _userRepo;
 
-  const UserHandler({required UserRepository userRepo})
-      : _userRepo = userRepo;
+  const UserHandler({required UserRepository userRepo}) : _userRepo = userRepo;
 
   /// GET /users/me
   /// tokenVersion DB ile karşılaştırılır — şifre/status değişmişse 401.
   Future<Response> me(Request req) async {
     final payload = req.jwtPayload;
 
-    final result = await _userRepo.getByHexId(payload.id);
+    final result = await _userRepo.getById(payload.id);
+
     if (result.isFailure || result.data == null) {
       return ResponseHandler.notFound('Kullanıcı bulunamadı');
     }
@@ -51,16 +50,17 @@ final class UserHandler {
       sortBy: params.sortBy,
       descending: params.descending,
     );
-    if (result.isFailure) return ResponseHandler.notFound('Kullanıcı bulunamadı');
+    if (result.isFailure) {
+      return ResponseHandler.notFound('Kullanıcı bulunamadı');
+    }
     return ResponseHandler.ok(
-      PaginationResponse.fromParams(result.data!, params)
-          .toJson(_toJson),
+      PaginationResponse.fromParams(result.data!, params).toJson(_toJson),
     );
   }
 
   /// GET /users/<id>
   Future<Response> getById(Request req, String id) async {
-    final result = await _userRepo.getByHexId(id);
+    final result = await _userRepo.getById(id);
     if (result.isFailure || result.data == null) {
       return ResponseHandler.notFound('Kullanıcı bulunamadı');
     }
@@ -121,14 +121,7 @@ final class UserHandler {
       return ResponseHandler.badRequest('Geçersiz status değeri: $statusValue');
     }
 
-    late ObjectId oid;
-    try {
-      oid = ObjectId.fromHexString(id);
-    } catch (_) {
-      return ResponseHandler.badRequest('Geçersiz kullanıcı ID');
-    }
-
-    final result = await _userRepo.updateStatus(oid, newStatus);
+    final result = await _userRepo.updateStatus(id, newStatus);
     if (result.isFailure) return ResponseHandler.fromAppResponse(result);
 
     return ResponseHandler.ok({
@@ -163,16 +156,11 @@ final class UserHandler {
     }
 
     final error = Validators.validatePassword(rawPassword.trim(), minLength: 6);
-    if (error != null) return ResponseHandler.badRequest(error.toBackendMessage());
-
-    late ObjectId oid;
-    try {
-      oid = ObjectId.fromHexString(id);
-    } catch (_) {
-      return ResponseHandler.badRequest('Geçersiz kullanıcı ID');
+    if (error != null) {
+      return ResponseHandler.badRequest(error.toBackendMessage());
     }
 
-    final userResult = await _userRepo.getById(oid);
+    final userResult = await _userRepo.getById(id);
     if (userResult.isFailure || userResult.data == null) {
       return ResponseHandler.notFound('Kullanıcı bulunamadı');
     }
@@ -183,7 +171,7 @@ final class UserHandler {
     }
 
     final newHash = BCrypt.hashpw(rawPassword.trim(), BCrypt.gensalt());
-    final result = await _userRepo.updatePassword(oid, newHash);
+    final result = await _userRepo.updatePassword(id, newHash);
     if (result.isFailure) return ResponseHandler.fromAppResponse(result);
 
     return ResponseHandler.ok({
@@ -195,10 +183,10 @@ final class UserHandler {
   // ── private ───────────────────────────────────────────────────────────────
 
   Map<String, dynamic> _toJson(User user) => {
-        'id': user.id.oid,
-        'name': user.name,
-        'role': user.role.value,
-        'status': user.status.value,
-        'authType': user.authType.value,
-      };
+    'id': user.id,
+    'name': user.name,
+    'role': user.role.value,
+    'status': user.status.value,
+    'authType': user.authType.value,
+  };
 }

@@ -37,12 +37,6 @@ final class FileField extends MultipartField {
   });
 }
 
-/// Multipart/form-data body'sini parse eder.
-///
-/// Kullanım:
-///   final fields = await MultipartParser.parse(request);
-///   final nameField = fields.whereType<TextField>().firstWhere((f) => f.name == 'name');
-///   final avatarField = fields.whereType<FileField>().firstWhere(..., orElse: () => null);
 final class MultipartParser {
   const MultipartParser._();
 

@@ -16,7 +16,7 @@ final class JwtService {
 
   String generateToken(JwtPayload payload, JwtConfig config) {
     return JWT(
-      payload.toMap(),
+      payload.toJson(),
       issuer: config.issuer,
       subject: config.subject,
     ).sign(
@@ -30,7 +30,7 @@ final class JwtService {
     try {
       final jwt = JWT.verify(token, _publicKey);
       return AppResponse.success(
-        JwtPayload.fromMap(Map<String, dynamic>.from(jwt.payload as Map)),
+        JwtPayload.fromJson(Map<String, dynamic>.from(jwt.payload as Map)),
       );
     } on JWTExpiredException {
       return AppResponse.failure(CustomError('Token süresi dolmuş'));

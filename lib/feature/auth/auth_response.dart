@@ -1,9 +1,18 @@
 import 'package:dart_backend/feature/user/models/user.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'auth_response.g.dart';
+
+@JsonSerializable()
 final class AuthResponse {
-  final String id; // ✅ Client'a string gönderilir
+  @JsonKey(name: '_id')
+  final String id;
   final int role;
+
+  @JsonKey(name: 'access_token')
   final String accessToken;
+
+  @JsonKey(name: 'refresh_token')
   final String refreshToken;
 
   const AuthResponse({
@@ -17,17 +26,17 @@ final class AuthResponse {
     User user, {
     required String accessToken,
     required String refreshToken,
-  }) => AuthResponse(
-    id: user.id.toHexString(), // ✅ ObjectId → hex string
-    role: user.role.value,
-    accessToken: accessToken,
-    refreshToken: refreshToken,
-  );
+  }) {
+    return AuthResponse(
+      id: user.id ?? '',
+      role: user.role.value,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
+  }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'role': role,
-    'access_token': accessToken,
-    'refresh_token': refreshToken,
-  };
+  factory AuthResponse.fromJson(Map<String, dynamic> json) =>
+      _$AuthResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AuthResponseToJson(this);
 }

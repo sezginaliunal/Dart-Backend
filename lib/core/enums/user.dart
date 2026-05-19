@@ -1,3 +1,6 @@
+import 'package:json_annotation/json_annotation.dart';
+
+@JsonEnum(valueField: 'value')
 enum UserStatus {
   active(value: 1),
   inactive(value: 2),
@@ -22,10 +25,10 @@ enum UserStatus {
   bool get isPendingVerification => this == UserStatus.pendingVerification;
   bool get isDeleted => this == UserStatus.deleted;
 
-  /// Kullanıcının sisteme erişimine izin verilip verilmediğini kontrol eder.
   bool get canAccess => isActive || isPendingVerification;
 }
 
+@JsonEnum(valueField: 'value')
 enum UserRole {
   admin(value: 1),
   moderator(value: 2),
@@ -48,6 +51,5 @@ enum UserRole {
   bool get isCustomer => this == UserRole.customer;
   bool get isGuest => this == UserRole.guest;
 
-  /// Admin ve moderatör yönetici sayılır.
   bool get isStaff => isAdmin || isModerator;
 }

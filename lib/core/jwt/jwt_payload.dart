@@ -1,8 +1,13 @@
 import 'package:dart_backend/core/enums/user.dart';
 import 'package:dart_backend/feature/user/models/user.dart';
+import 'package:json_annotation/json_annotation.dart';
+part 'jwt_payload.g.dart';
 
+@JsonSerializable()
 final class JwtPayload {
+  @JsonKey(name: '_id')
   final String id;
+
   final UserRole role;
 
   /// DB'deki tokenVersion ile eşleşmezse token geçersiz sayılır.
@@ -15,20 +20,13 @@ final class JwtPayload {
   });
 
   factory JwtPayload.fromUser(User user) => JwtPayload(
-    id: user.id.oid,
+    id: user.id ?? '',
     role: user.role,
     tokenVersion: user.tokenVersion,
   );
 
-  factory JwtPayload.fromMap(Map<String, dynamic> map) => JwtPayload(
-    id: map['id'] as String,
-    role: UserRole.values.firstWhere((r) => r.name == map['role']),
-    tokenVersion: map['tokenVersion'] as int? ?? 0,
-  );
+  factory JwtPayload.fromJson(Map<String, dynamic> json) =>
+      _$JwtPayloadFromJson(json);
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'role': role.name,
-    'tokenVersion': tokenVersion,
-  };
+  Map<String, dynamic> toJson() => _$JwtPayloadToJson(this);
 }

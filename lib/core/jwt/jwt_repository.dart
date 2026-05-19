@@ -3,7 +3,6 @@ import 'package:dart_backend/core/jwt/jwt_collection.dart';
 import 'package:dart_backend/core/jwt/jwt_payload.dart';
 import 'package:dart_backend/feature/auth/auth_response.dart';
 import 'package:dart_backend/feature/user/models/user.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 
 final class JwtRepository {
   final JwtCollection _collection;
@@ -27,7 +26,7 @@ final class JwtRepository {
     return _collection.refresh(refreshToken, user);
   }
 
-  Future<AppResponse<bool>> deleteToken(ObjectId userId) {
+  Future<AppResponse<bool>> deleteToken(String userId) {
     return _collection.deleteByUserId(userId);
   }
 }

@@ -4,9 +4,10 @@ import 'package:dart_backend/core/enums/auth.dart';
 import 'package:dart_backend/core/errors.dart';
 import 'package:dart_backend/core/jwt/jwt_repository.dart';
 import 'package:dart_backend/feature/auth/auth_response.dart';
-import 'package:dart_backend/feature/auth/models/auth_request.dart';
+import 'package:dart_backend/feature/auth/models/auth_dto.dart';
 import 'package:dart_backend/feature/user/models/user.dart';
 import 'package:dart_backend/feature/user/user_repository.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 
 /// Auth iş mantığı katmanı.
 ///
@@ -62,6 +63,7 @@ final class AuthService {
     if (req.authType.isEmail) {
       final hash = BCrypt.hashpw(req.password!, BCrypt.gensalt());
       user = User(
+        id: ObjectId().oid,
         name: req.name.trim(),
         authType: AuthType.email,
         passwordHash: hash,
@@ -69,6 +71,7 @@ final class AuthService {
       );
     } else {
       user = User(
+        id: ObjectId().oid,
         name: req.name.trim(),
         authType: req.authType,
         providerUid: req.providerUid,
@@ -142,7 +145,7 @@ final class AuthService {
 
     // Güncel kullanıcıyı DB'den getir — tokenVersion'ın değişip değişmediğini
     // öğrenmek için her seferinde DB'ye gidiyoruz
-    final userResult = await _userRepo.getByHexId(userId);
+    final userResult = await _userRepo.getById(userId);
     if (userResult.isFailure || userResult.data == null) {
       return AppResponse.failure(const UnauthorizedError());
     }

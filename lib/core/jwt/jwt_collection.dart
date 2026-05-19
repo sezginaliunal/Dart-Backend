@@ -3,6 +3,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dart_backend/core/app_response.dart';
 import 'package:dart_backend/core/errors.dart';
 import 'package:dart_backend/core/jwt/jwt_config.dart';
+import 'package:dart_backend/core/jwt/jwt_db_model.dart';
 import 'package:dart_backend/core/jwt/jwt_payload.dart';
 import 'package:dart_backend/core/jwt/jwt_service.dart';
 import 'package:dart_backend/core/mongo/mongo_collection.dart';
@@ -27,13 +28,14 @@ final class JwtCollection extends MongoCollection {
 
     // Kullanıcının eski token'larını temizle
     await deleteMany({'userId': user.id});
-
-    await insertOne({
-      'userId': user.id,
-      'refreshTokenHash': _hashToken(refreshToken),
-      'tokenVersion': user.tokenVersion,
-      'createdAt': DateTime.now().toIso8601String(),
-    });
+    final jwtDbModel = JwtDbModel(
+      id: ObjectId().oid,
+      userId: user.id!,
+      refreshTokenHash: _hashToken(refreshToken),
+      tokenVersion: user.tokenVersion,
+      createdAt: DateTime.now().toIso8601String(),
+    );
+    await insertOne(jwtDbModel.toJson());
 
     return AppResponse.success(
       AuthResponse.fromUser(
@@ -88,7 +90,7 @@ final class JwtCollection extends MongoCollection {
     return create(user);
   }
 
-  Future<AppResponse<bool>> deleteByUserId(ObjectId userId) async {
+  Future<AppResponse<bool>> deleteByUserId(String userId) async {
     final res = await deleteMany({'userId': userId});
     return AppResponse.success(res.nRemoved > 0);
   }

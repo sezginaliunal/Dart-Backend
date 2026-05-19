@@ -6,7 +6,7 @@ import 'package:dart_backend/core/file/file_validator.dart';
 import 'package:dart_backend/core/file/multipart_parser.dart';
 import 'package:dart_backend/core/utils/app_logger.dart';
 import 'package:dart_backend/feature/auth/auth_service.dart';
-import 'package:dart_backend/feature/auth/models/auth_request.dart';
+import 'package:dart_backend/feature/auth/models/auth_dto.dart';
 import 'package:dart_backend/feature/user/user_upload_config.dart';
 import 'package:dart_backend/server/handler/response_handler.dart';
 import 'package:shelf/shelf.dart';
@@ -18,8 +18,8 @@ final class AuthHandler {
   const AuthHandler({
     required AuthService authService,
     required FileStorage fileStorage,
-  })  : _authService = authService,
-        _fileStorage = fileStorage;
+  }) : _authService = authService,
+       _fileStorage = fileStorage;
 
   Response health(Request req) {
     return ResponseHandler.ok({
@@ -98,7 +98,7 @@ final class AuthHandler {
 
     return ResponseHandler.created({
       'name': registerReq.name.trim(),
-      if (avatarPath != null) 'avatarPath': avatarPath,
+      'avatarPath': ?avatarPath,
     }, message: 'Kayıt başarılı. Giriş yapmak için /auth/login kullanın.');
   }
 
@@ -154,6 +154,9 @@ final class AuthHandler {
     );
     if (result.isFailure) return ResponseHandler.fromAppResponse(result);
 
-    return ResponseHandler.ok(result.data!.toJson(), message: 'Token yenilendi');
+    return ResponseHandler.ok(
+      result.data!.toJson(),
+      message: 'Token yenilendi',
+    );
   }
 }

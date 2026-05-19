@@ -1,3 +1,6 @@
+import 'package:json_annotation/json_annotation.dart';
+
+@JsonEnum(valueField: 'value')
 enum AuthType {
   email(value: 1),
   google(value: 2),
@@ -7,6 +10,7 @@ enum AuthType {
   final int value;
 
   const AuthType({required this.value});
+
   factory AuthType.fromValue(int value) {
     return AuthType.values.firstWhere(
       (type) => type.value == value,

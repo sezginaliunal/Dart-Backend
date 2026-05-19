@@ -22,18 +22,18 @@ Middleware rateLimitMiddleware({
   String message = 'Çok fazla istek. Lütfen biraz bekleyin.',
 }) {
   // IP → (istek sayısı, pencere başlangıcı)
-  final _store = <String, _RateEntry>{};
+  final store = <String, _RateEntry>{};
 
   return (Handler inner) {
     return (Request request) async {
       final ip = _clientIp(request);
       final now = DateTime.now();
 
-      final entry = _store[ip];
+      final entry = store[ip];
 
       if (entry == null || now.difference(entry.windowStart) >= window) {
         // Yeni pencere başlat
-        _store[ip] = _RateEntry(count: 1, windowStart: now);
+        store[ip] = _RateEntry(count: 1, windowStart: now);
       } else if (entry.count >= maxRequests) {
         // Limit aşıldı
         AppLogger.warn(
@@ -43,15 +43,15 @@ Middleware rateLimitMiddleware({
         return ResponseHandler.tooManyRequests(message);
       } else {
         // Pencere devam ediyor, sayacı artır
-        _store[ip] = _RateEntry(
+        store[ip] = _RateEntry(
           count: entry.count + 1,
           windowStart: entry.windowStart,
         );
       }
 
       // Eski kayıtları periyodik temizle (bellek sızıntısı önlemi)
-      if (_store.length > 10000) {
-        _store.removeWhere(
+      if (store.length > 10000) {
+        store.removeWhere(
           (_, e) => now.difference(e.windowStart) >= window * 2,
         );
       }

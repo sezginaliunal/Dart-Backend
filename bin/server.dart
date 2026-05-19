@@ -7,8 +7,6 @@ import 'package:dart_backend/core/jwt/jwt_repository.dart';
 import 'package:dart_backend/core/jwt/jwt_service.dart';
 import 'package:dart_backend/core/mongo/mongo_client.dart';
 import 'package:dart_backend/core/mongo/mongo_indexes.dart';
-import 'package:dart_backend/feature/product/product_collection.dart';
-import 'package:dart_backend/feature/product/product_repository.dart';
 import 'package:dart_backend/feature/user/user_collection.dart';
 import 'package:dart_backend/feature/user/user_repository.dart';
 import 'package:dart_backend/server/app_server.dart';
@@ -25,7 +23,9 @@ Future<void> main() async {
   final connectResult = await mongo.connect();
 
   if (connectResult.isFailure) {
-    stderr.writeln('❌  DB bağlantısı kurulamadı: ${connectResult.error?.message}');
+    stderr.writeln(
+      '❌  DB bağlantısı kurulamadı: ${connectResult.error?.message}',
+    );
     exitCode = 1;
     return;
   }
@@ -45,7 +45,6 @@ Future<void> main() async {
   // ── 5. Repository'ler ──────────────────────────────────────────────────────
   final userRepo = UserRepository(UserCollection(db));
   final jwtRepo = JwtRepository(JwtCollection(db, jwtService));
-  final productRepo = ProductRepository(ProductCollection(db));
 
   // ── 6. File storage ────────────────────────────────────────────────────────
   final uploadsDir = p.join(
@@ -61,7 +60,6 @@ Future<void> main() async {
     jwtRepo: jwtRepo,
     jwtService: jwtService,
     fileStorage: fileStorage,
-    productRepo: productRepo,
   );
 
   // ── 8. Graceful shutdown ───────────────────────────────────────────────────

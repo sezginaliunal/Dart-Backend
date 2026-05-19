@@ -3,7 +3,6 @@ import 'package:dart_backend/core/enums/user.dart';
 import 'package:dart_backend/core/mongo/mongo_db_feature_repository.dart';
 import 'package:dart_backend/feature/user/models/user.dart';
 import 'package:dart_backend/feature/user/user_collection.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 
 final class UserRepository extends MongoDBFeatureRepository<User> {
   final UserCollection _collection;
@@ -12,13 +11,13 @@ final class UserRepository extends MongoDBFeatureRepository<User> {
   @override
   Future<AppResponse<bool>> create(User item) => _collection.create(item);
   @override
-  Future<AppResponse<bool>> delete(ObjectId id) => _collection.delete(id);
+  Future<AppResponse<bool>> delete(String id) => _collection.delete(id);
   @override
   Future<AppResponse<List<User>>> getAll() => _collection.getAll();
   @override
-  Future<AppResponse<User?>> getById(ObjectId id) => _collection.getById(id);
+  Future<AppResponse<User?>> getById(String id) => _collection.getById(id);
   @override
-  Future<AppResponse<bool>> exists(ObjectId id) => _collection.exists(id);
+  Future<AppResponse<bool>> exists(String id) => _collection.exists(id);
   @override
   Future<AppResponse<bool>> existsByName(String name) =>
       _collection.existsByName(name);
@@ -26,11 +25,8 @@ final class UserRepository extends MongoDBFeatureRepository<User> {
   Future<AppResponse<User?>> getByName(String name) =>
       _collection.getByName(name);
   @override
-  Future<AppResponse<bool>> updateField(
-    ObjectId id,
-    String key,
-    dynamic value,
-  ) => _collection.updateField(id, key, value);
+  Future<AppResponse<bool>> updateField(String id, String key, dynamic value) =>
+      _collection.updateField(id, key, value);
   @override
   Future<AppResponse<List<User>>> paginationList({
     int page = 1,
@@ -44,13 +40,11 @@ final class UserRepository extends MongoDBFeatureRepository<User> {
     descending: descending,
   );
 
-  Future<AppResponse<User?>> getByHexId(String hexId) =>
-      _collection.getByHexId(hexId);
-  Future<AppResponse<bool>> updateRole(ObjectId id, UserRole newRole) =>
+  Future<AppResponse<bool>> updateRole(String id, UserRole newRole) =>
       _collection.updateRole(id, newRole);
-  Future<AppResponse<bool>> updateStatus(ObjectId id, UserStatus newStatus) =>
+  Future<AppResponse<bool>> updateStatus(String id, UserStatus newStatus) =>
       _collection.updateStatus(id, newStatus);
-  Future<AppResponse<bool>> updatePassword(ObjectId id, String newPasswordHash) =>
+  Future<AppResponse<bool>> updatePassword(String id, String newPasswordHash) =>
       _collection.updatePassword(id, newPasswordHash);
   Future<AppResponse<List<User>>> getByRole(UserRole role) =>
       _collection.getByRole(role);
